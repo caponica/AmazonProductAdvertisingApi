@@ -49,8 +49,8 @@ class ItemLookupParameterSet extends GenericParameterSet
     const PARAM_VALUE_RESPONSE_GROUP_MEDIUM             = 'Medium';           // |=|x|  // Includes: EditorialReview, Images, ItemAttributes, OfferSummary, Request, SalesRank, Small
     const PARAM_VALUE_RESPONSE_GROUP_OFFER_FULL         = 'OfferFull';        // | | |
     const PARAM_VALUE_RESPONSE_GROUP_OFFERS             = 'Offers';           // | |x|
-    const PARAM_VALUE_RESPONSE_GROUP_PROMOTION_SUMMARY  = 'PromotionSummary'; // | | |
     const PARAM_VALUE_RESPONSE_GROUP_OFFER_SUMMARY      = 'OfferSummary';     // |x|x|
+    const PARAM_VALUE_RESPONSE_GROUP_PROMOTION_SUMMARY  = 'PromotionSummary'; // | | |
     const PARAM_VALUE_RESPONSE_GROUP_RELATED_ITEMS      = 'RelatedItems';     // | | |
     const PARAM_VALUE_RESPONSE_GROUP_REVIEWS            = 'Reviews';          // | |x|
     const PARAM_VALUE_RESPONSE_GROUP_SALES_RANK         = 'SalesRank';        // |x|x|

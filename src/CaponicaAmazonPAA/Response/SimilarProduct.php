@@ -1,0 +1,21 @@
+<?php
+
+namespace CaponicaAmazonPAA\Response;
+
+/**
+ * Represents a SimilarProduct returned by a PAA response
+ */
+class SimilarProduct
+{
+    private $asin;
+    private $title;
+
+    public function __construct(\SimpleXMLElement $source) {
+        if ($source->ASIN) {
+            $this->asin = (string)$source->ASIN;
+        }
+        if ($source->Title) {
+            $this->title = (string)$source->Title;
+        }
+    }
+}
