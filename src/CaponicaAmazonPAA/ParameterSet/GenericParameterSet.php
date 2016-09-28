@@ -1,6 +1,7 @@
 <?php
 
 namespace CaponicaAmazonPAA\ParameterSet;
+
 use CaponicaAmazonPAA\Client\ApaaClientConfiguration;
 
 /**
