@@ -1,0 +1,22 @@
+{
+  "name": "caponica/amazon-paa",
+  "type": "library",
+  "license": "MIT",
+  "description": "Simplified access the Amazon Product Advertising API",
+  "keywords": ["amazon", "product advertising api", "product advertising", "amazon api", "ecs"],
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Christian Morgan, Caponica",
+      "homepage": "http://www.github.com/Caponica"
+    }
+  ],
+
+  "require": {
+    "php": ">=5.3.2",
+  },
+
+  "autoload": {
+    "psr-0": { "CaponicaAmazonPAA\\": "src/" }
+  }
+}
