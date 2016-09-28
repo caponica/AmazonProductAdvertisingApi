@@ -24,6 +24,16 @@ class ApaaClientConfiguration
         $this->associateTag     = $associateTag;
     }
 
+    public function getAccessKey() {
+        return $this->accessKeyId;
+    }
+    public function getSecretAccessKey() {
+        return $this->secretAccessKey;
+    }
+    public function getAssociateTag() {
+        return $this->associateTag;
+    }
+
     public function getEndpoint() {
         return $this->getProtocol() . $this->getDomain() . $this->getUri();
     }
@@ -36,8 +46,5 @@ class ApaaClientConfiguration
     }
     public function getUri() {
         return '/onca/xml';
-    }
-    public function getSecretAccessKey() {
-        return $this->secretAccessKey;
     }
 }
