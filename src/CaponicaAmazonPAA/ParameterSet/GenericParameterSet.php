@@ -9,15 +9,18 @@ use CaponicaAmazonPAA\Client\ApaaClientConfiguration;
  */
 class GenericParameterSet
 {
-    const PARAM_KEY_ACCESS_KEY      = 'AWSAccessKeyId';
-    const PARAM_KEY_ASSOCIATE_TAG   = 'AssociateTag';
-    const PARAM_KEY_OPERATION       = 'Operation';
-    const PARAM_KEY_SERVICE         = 'Service';
-    const PARAM_KEY_TIMESTAMP       = 'Timestamp';
+    const PARAM_KEY_ACCESS_KEY              = 'AWSAccessKeyId';
+    const PARAM_KEY_ASSOCIATE_TAG           = 'AssociateTag';
+    const PARAM_KEY_OPERATION               = 'Operation';
+    const PARAM_KEY_SERVICE                 = 'Service';
+    const PARAM_KEY_TIMESTAMP               = 'Timestamp';
 
-    const PARAM_VALUE_SERVICE       = 'AWSECommerceService';
+    const PARAM_VALUE_SERVICE               = 'AWSECommerceService';
 
-    private $parameters = [];
+    const PARAM_VALUE_OPERATION_ITEM_LOOKUP = 'ItemLookup';
+    const PARAM_VALUE_OPERATION_ITEM_SEARCH = 'ItemSearch';
+
+    protected $parameters = [];
 
     public function addParameter($key, $value) {
         $this->parameters[$key] = $value;

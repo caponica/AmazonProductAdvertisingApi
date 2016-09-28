@@ -3,6 +3,7 @@
 namespace CaponicaAmazonPAA\Client;
 
 use CaponicaAmazonPAA\ParameterSet\GenericParameterSet;
+use CaponicaAmazonPAA\ParameterSet\ItemLookupParameterSet;
 
 /**
  * Client to connect to the Amazon Product Advertising API
@@ -19,19 +20,25 @@ class ApaaClient
         $this->configuration = $configuration;
     }
 
-    public function itemLookup(GenericParameterSet $parameters) {
-        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, 'ItemLookup');
+    public function callItemLookupLarge($itemId) {
+        $parameters = new ItemLookupParameterSet($itemId, [
+            ItemLookupParameterSet::PARAM_KEY_RESPONSE_GROUP => ItemLookupParameterSet::PARAM_VALUE_RESPONSE_GROUP_LARGE,
+        ]);
+        return $this->makeApiCall($parameters);
+    }
+    public function callItemLookup(GenericParameterSet $parameters) {
+        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, GenericParameterSet::PARAM_VALUE_OPERATION_ITEM_LOOKUP);
         return $this->makeApiCall($parameters);
     }
 
-    public function itemSearch(GenericParameterSet $parameters) {
-        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, 'ItemSearch');
+    public function callItemSearch(GenericParameterSet $parameters) {
+        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, GenericParameterSet::PARAM_VALUE_OPERATION_ITEM_SEARCH);
         return $this->makeApiCall($parameters);
     }
 
     private function makeApiCall(GenericParameterSet $parameters) {
         $url = $parameters->generateSignedUrlForConfiguration($this->configuration);
-//        echo "\n<p>URL: $url </p>";
+//echo "\n<p>URL: $url </p>";
 
         $curl = \curl_init();
         curl_setopt_array($curl, array(
@@ -48,7 +55,7 @@ class ApaaClient
             $response = $e->getMessage();
         }
 
-//        var_dump($response);
+//var_dump($response);
 
         curl_close($curl);
 
