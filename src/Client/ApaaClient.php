@@ -19,6 +19,11 @@ class ApaaClient
         $this->configuration = $configuration;
     }
 
+    public function itemLookup(GenericParameterSet $parameters) {
+        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, 'ItemLookup');
+        return $this->makeApiCall($parameters);
+    }
+
     public function itemSearch(GenericParameterSet $parameters) {
         $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, 'ItemSearch');
         return $this->makeApiCall($parameters);
