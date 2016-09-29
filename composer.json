@@ -17,6 +17,6 @@
   },
 
   "autoload": {
-    "psr-0": { "CaponicaAmazonPAA\\": "src/" }
+    "psr-0": { "CaponicaAmazonPaa\\": "src/" }
   }
 }

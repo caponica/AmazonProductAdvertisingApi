@@ -1,6 +1,6 @@
 <?php
 
-namespace CaponicaAmazonPAA\Response;
+namespace CaponicaAmazonPaa\Response;
 
 /**
  * Represents a SimilarProduct returned by a PAA response

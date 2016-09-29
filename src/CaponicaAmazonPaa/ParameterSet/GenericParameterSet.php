@@ -1,8 +1,8 @@
 <?php
 
-namespace CaponicaAmazonPAA\ParameterSet;
+namespace CaponicaAmazonPaa\ParameterSet;
 
-use CaponicaAmazonPAA\Client\ApaaClientConfiguration;
+use CaponicaAmazonPaa\Client\ApaaClientConfiguration;
 
 /**
  * A generic set of parameters for a PAA request

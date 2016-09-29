@@ -1,6 +1,6 @@
 <?php
 
-namespace CaponicaAmazonPAA\Client;
+namespace CaponicaAmazonPaa\Client;
 
 /**
  * Client to connect to the Amazon Product Advertising API
@@ -11,6 +11,25 @@ class ApaaClientConfiguration
     private $accessKeyId;
     private $secretAccessKey;
     private $associateTag;
+
+    public static function buildFromArray($configArray=[]) {
+        $requiredFields = [ 'access_key', 'secret_key', 'associate_tag' ];
+        foreach ($requiredFields as $requiredField) {
+            if (empty($configArray[$requiredField])) {
+                throw new \InvalidArgumentException('Missing ApaaClientConfiguration key ' . $requiredField);
+            }
+        }
+        if (empty($configArray['domain_suffix'])) {
+            $configArray['domain_suffix'] = 'com';
+        }
+
+        return new ApaaClientConfiguration(
+            $configArray['access_key'],
+            $configArray['secret_key'],
+            $configArray['associate_tag'],
+            $configArray['domain_suffix']
+        );
+    }
 
     public function __construct($accessKeyId, $secretAccessKey, $associateTag, $domainSuffix = 'com')
     {

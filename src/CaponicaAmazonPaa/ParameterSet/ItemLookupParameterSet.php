@@ -1,6 +1,6 @@
 <?php
 
-namespace CaponicaAmazonPAA\ParameterSet;
+namespace CaponicaAmazonPaa\ParameterSet;
 
 /**
  * A generic set of parameters for a PAA request

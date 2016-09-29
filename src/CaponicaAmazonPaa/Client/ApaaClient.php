@@ -1,10 +1,10 @@
 <?php
 
-namespace CaponicaAmazonPAA\Client;
+namespace CaponicaAmazonPaa\Client;
 
-use CaponicaAmazonPAA\ParameterSet\GenericParameterSet;
-use CaponicaAmazonPAA\ParameterSet\ItemLookupParameterSet;
-use CaponicaAmazonPAA\Response\ItemLookupResponse;
+use CaponicaAmazonPaa\ParameterSet\GenericParameterSet;
+use CaponicaAmazonPaa\ParameterSet\ItemLookupParameterSet;
+use CaponicaAmazonPaa\Response\ItemLookupResponse;
 
 /**
  * Client to connect to the Amazon Product Advertising API
@@ -15,6 +15,11 @@ class ApaaClient
      * @var ApaaClientConfiguration
      */
     private $configuration;
+
+    public static function buildFromArray($configArray) {
+        $configuration = ApaaClientConfiguration::buildFromArray($configArray);
+        return new ApaaClient($configuration);
+    }
 
     public function __construct(ApaaClientConfiguration $configuration) {
         $this->configuration = $configuration;

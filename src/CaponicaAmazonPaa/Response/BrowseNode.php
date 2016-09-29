@@ -1,6 +1,6 @@
 <?php
 
-namespace CaponicaAmazonPAA\Response;
+namespace CaponicaAmazonPaa\Response;
 
 /**
  * Represents a BrowseNode returned by a PAA response

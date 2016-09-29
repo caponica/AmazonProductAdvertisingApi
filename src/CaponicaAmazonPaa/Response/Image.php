@@ -1,6 +1,6 @@
 <?php
 
-namespace CaponicaAmazonPAA\Response;
+namespace CaponicaAmazonPaa\Response;
 
 /**
  * Represents an image returned by a PAA response
