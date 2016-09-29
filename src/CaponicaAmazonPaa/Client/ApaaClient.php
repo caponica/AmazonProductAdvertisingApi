@@ -25,6 +25,10 @@ class ApaaClient
         $this->configuration = $configuration;
     }
 
+    public function getDomainSuffix() {
+        return $this->configuration->getDomainSuffix();
+    }
+
     private function makeApiCall(GenericParameterSet $parameters) {
         $url = $parameters->generateSignedUrlForConfiguration($this->configuration);
 

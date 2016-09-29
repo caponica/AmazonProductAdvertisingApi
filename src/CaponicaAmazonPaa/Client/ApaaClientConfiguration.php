@@ -52,6 +52,9 @@ class ApaaClientConfiguration
     public function getAssociateTag() {
         return $this->associateTag;
     }
+    public function getDomainSuffix() {
+        return $this->domainSuffix;
+    }
 
     public function getEndpoint() {
         return $this->getProtocol() . $this->getDomain() . $this->getUri();
