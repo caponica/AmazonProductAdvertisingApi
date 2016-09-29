@@ -91,12 +91,12 @@ class ItemAttributes
 
         if ($source->Feature) {
             foreach ($source->Feature as $feature) {
-                $this->features[] = $feature;
+                $this->features[] = (string)$feature;
             }
         }
         if ($source->Languages && $source->Languages->Language) {
             foreach ($source->Languages->Language as $language) {
-                $this->languages[] = $language->Name; // What is Language->Type?
+                $this->languages[] = (string)$language->Name; // What is Language->Type?
             }
         }
         if ($source->ItemDimensions) {

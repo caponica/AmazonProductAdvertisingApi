@@ -92,13 +92,13 @@ class Item
         if ($source->EditorialReviews && $source->EditorialReviews->EditorialReview) {
             $editorialReview = $source->EditorialReviews->EditorialReview;
             if ($editorialReview->Source) {
-                $this->editorialSource = $editorialReview->Source;
+                $this->editorialSource = (string)$editorialReview->Source;
             }
             if ($editorialReview->Content) {
-                $this->editorialContent = $editorialReview->Content;
+                $this->editorialContent = (string)$editorialReview->Content;
             }
             if ($editorialReview->IsLinkSuppressed) {
-                $this->editorialIsLinkSuppressed = $editorialReview->IsLinkSuppressed;
+                $this->editorialIsLinkSuppressed = (string)$editorialReview->IsLinkSuppressed;
             }
         }
         if ($source->SimilarProducts && $source->SimilarProducts->SimilarProduct) {
