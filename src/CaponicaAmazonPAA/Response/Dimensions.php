@@ -45,7 +45,7 @@ class Dimensions
      * @return float
      * @throws \Exception
      */
-    public function getNormalisedWeightInKg() {
+    public function getWeightInKg() {
         if (empty($this->weight)) {
             throw new \Exception("No weight given");
         } elseif (empty($this->units['weight'])) {
@@ -61,7 +61,7 @@ class Dimensions
      * @return float
      * @throws \Exception
      */
-    public function getNormalisedWeightInPounds() {
+    public function getWeightInPounds() {
         if (empty($this->weight)) {
             throw new \Exception("No weight given");
         } elseif (empty($this->units['weight'])) {
