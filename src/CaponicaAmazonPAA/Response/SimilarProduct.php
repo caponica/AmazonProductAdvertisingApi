@@ -18,4 +18,23 @@ class SimilarProduct
             $this->title = (string)$source->Title;
         }
     }
+
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+    /**
+     * @return string
+     */
+    public function getAsin()
+    {
+        return $this->asin;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
 }

@@ -2,8 +2,6 @@
 
 namespace CaponicaAmazonPAA\ParameterSet;
 
-use CaponicaAmazonPAA\Client\ApaaClientConfiguration;
-
 /**
  * A generic set of parameters for a PAA request
  */

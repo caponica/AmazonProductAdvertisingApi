@@ -22,4 +22,31 @@ class Price
             $this->formattedPrice = (string)$source->FormattedPrice;
         }
     }
+
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+    /**
+     * @return int
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCurrencyCode()
+    {
+        return $this->currencyCode;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFormattedPrice()
+    {
+        return $this->formattedPrice;
+    }
 }

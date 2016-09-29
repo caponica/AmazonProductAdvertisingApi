@@ -11,13 +11,27 @@ class Image
     private $url;
     private $height;
     private $width;
+    // @todo - not currently capturing image units. Would it ever not be pixels?
 
     public function __construct(\SimpleXMLElement $source) {
         $this->url      = (string)$source->URL;
         $this->height   = (int)$source->Height;
         $this->width    = (int)$source->Width;
     }
+    
+    public function getUrlForWidth($width) {
+        if (!$this->url) {
+            return null;
+        }
+        $baseImageUrl = substr($this->url, 0, -4);
+        $imageExtension = substr($this->url, -4);
+        $widthSuffix = str_replace('%width%', $width, self::IMAGE_URL_SUFFIX_FOR_DIFFERENT_WIDTH);
+        return $baseImageUrl . $widthSuffix . $imageExtension;
+    }
 
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
     /**
      * @return string
      */
@@ -41,15 +55,4 @@ class Image
     {
         return $this->width;
     }
-
-    public function getUrlForWidth($width) {
-        if (!$this->url) {
-            return null;
-        }
-        $baseImageUrl = substr($this->url, 0, -4);
-        $imageExtension = substr($this->url, -4);
-        $widthSuffix = str_replace('%width%', $width, self::IMAGE_URL_SUFFIX_FOR_DIFFERENT_WIDTH);
-        return $baseImageUrl . $widthSuffix . $imageExtension;
-    }
-
 }

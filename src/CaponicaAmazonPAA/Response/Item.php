@@ -16,15 +16,18 @@ class Item
     /** @var string */
     private $asin;
     /** @var string */
+    private $parentAsin;
+    /** @var string */
     private $detailPageUrl;
     /** @var array */
     private $itemLinks = [];
     /** @var int */
     private $salesRank;
     /** @var Image */
-    private $largeImage;
+    private $mainImage;
     /** @var ItemAttributes */
     private $itemAttributes;
+    private $secondaryImages = []; // from ImageSets. Does not include main image (which is in mainImage)
     private $offerSummary;  // @todo (it's not very useful since LowestNewPrice given excludes postage)
     /** @var OfferCollection */
     private $offers;
@@ -45,6 +48,9 @@ class Item
         if ($source->ASIN) {
             $this->asin = (string)$source->ASIN;
         }
+        if ($source->ParentASIN) {
+            $this->parentAsin = (string)$source->ParentASIN;
+        }
         if ($source->DetailPageURL) {
             $this->detailPageUrl = (string)$source->DetailPageURL;
         }
@@ -59,7 +65,17 @@ class Item
             $this->salesRank = (int)$source->SalesRank;
         }
         if ($source->LargeImage) {
-            $this->largeImage = new Image($source->LargeImage);
+            $this->mainImage = new Image($source->LargeImage);
+        }
+        if ($source->ImageSets && $source->ImageSets->ImageSet) {
+            foreach ($source->ImageSets->ImageSet as $imageSet) {
+                if ($imageSet->LargeImage && $imageSet->LargeImage->URL) {
+                    if ($this->mainImage && $this->mainImage->getUrl() == $imageSet->LargeImage->URL) {
+                        continue;
+                    }
+                    $this->secondaryImages[] = new Image($imageSet->LargeImage);
+                }
+            }
         }
         if ($source->ItemAttributes) {
             $this->itemAttributes = new ItemAttributes($source->ItemAttributes);
@@ -98,11 +114,33 @@ class Item
     }
 
     /**
+     * Alias method for getMainImage()
+     *
+     * @return Image
+     */
+    public function getLargeImage()
+    {
+        return $this->getMainImage();
+    }
+
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+
+    /**
      * @return string
      */
     public function getAsin()
     {
         return $this->asin;
+    }
+
+    /**
+     * @return string
+     */
+    public function getParentAsin()
+    {
+        return $this->parentAsin;
     }
 
     /**
@@ -132,9 +170,9 @@ class Item
     /**
      * @return Image
      */
-    public function getLargeImage()
+    public function getMainImage()
     {
-        return $this->largeImage;
+        return $this->mainImage;
     }
 
     /**
@@ -143,6 +181,14 @@ class Item
     public function getItemAttributes()
     {
         return $this->itemAttributes;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSecondaryImages()
+    {
+        return $this->secondaryImages;
     }
 
     /**

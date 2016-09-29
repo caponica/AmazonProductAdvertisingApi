@@ -14,10 +14,12 @@ class OfferCollection
     private $offerCondition;
     private $offerListingId;
     private $offerPrice;
+    private $offerAmountSaved;
     private $offerAvailability;
     private $offerAvailabilityType;
     private $offerAvailabilityMinHours;
     private $offerAvailabilityMaxHours;
+    private $offerPercentageSaved;
     private $isEligibleForSuperSaverShipping;
     private $isEligibleForPrime;
 
@@ -48,6 +50,12 @@ class OfferCollection
                 if ($offerListing->Price) {
                     $this->offerPrice = new Price($offerListing->Price);
                 }
+                if ($offerListing->AmountSaved) {
+                    $this->offerAmountSaved = new Price($offerListing->AmountSaved);
+                }
+                if ($offerListing->PercentageSaved) {
+                    $this->offerPercentageSaved = (int)$offerListing->PercentageSaved;
+                }
                 if ($offerListing->Availability) {
                     $this->offerAvailability = (string)$offerListing->Availability;
                 }
@@ -73,8 +81,127 @@ class OfferCollection
 
     }
 
-/*
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
 
- */
+    /**
+     * @return int
+     */
+    public function getTotalOffers()
+    {
+        return $this->totalOffers;
+    }
 
+    /**
+     * @return int
+     */
+    public function getTotalOfferPages()
+    {
+        return $this->totalOfferPages;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMoreOffersUrl()
+    {
+        return $this->moreOffersUrl;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferMerchantName()
+    {
+        return $this->offerMerchantName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferCondition()
+    {
+        return $this->offerCondition;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferListingId()
+    {
+        return $this->offerListingId;
+    }
+
+    /**
+     * @return Price
+     */
+    public function getOfferPrice()
+    {
+        return $this->offerPrice;
+    }
+
+    /**
+     * @return Price
+     */
+    public function getOfferAmountSaved()
+    {
+        return $this->offerAmountSaved;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferAvailability()
+    {
+        return $this->offerAvailability;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferAvailabilityType()
+    {
+        return $this->offerAvailabilityType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferAvailabilityMinHours()
+    {
+        return $this->offerAvailabilityMinHours;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOfferAvailabilityMaxHours()
+    {
+        return $this->offerAvailabilityMaxHours;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOfferPercentageSaved()
+    {
+        return $this->offerPercentageSaved;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isIsEligibleForSuperSaverShipping()
+    {
+        return $this->isEligibleForSuperSaverShipping;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isIsEligibleForPrime()
+    {
+        return $this->isEligibleForPrime;
+    }
 }

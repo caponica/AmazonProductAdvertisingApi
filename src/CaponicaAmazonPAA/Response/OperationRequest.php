@@ -20,4 +20,31 @@ class OperationRequest
             $this->arguments[$name] = $value;
         }
     }
+
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+    /**
+     * @return string
+     */
+    public function getRequestId()
+    {
+        return $this->requestId;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArguments()
+    {
+        return $this->arguments;
+    }
+
+    /**
+     * @return float
+     */
+    public function getRequestProcessingTime()
+    {
+        return $this->requestProcessingTime;
+    }
 }

@@ -24,12 +24,41 @@ class ItemLookupResponse
         }
     }
 
-    public function getItem() {
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+
+    /**
+     * @return string
+     */
+    public function getRawXml()
+    {
+        return $this->rawXml;
+    }
+
+    /**
+     * @return \SimpleXMLElement
+     */
+    public function getParsedXml()
+    {
+        return $this->parsedXml;
+    }
+
+    /**
+     * @return OperationRequest
+     */
+    public function getOperationRequest()
+    {
+        return $this->operationRequest;
+    }
+
+    /**
+     * @return Item
+     */
+    public function getItem()
+    {
         return $this->item;
     }
 
-    public function getEditorialReviewContent() {
-//        print_r($this->parsedXml);
-        return $this->item->getEditorialContent();
-    }
+
 }

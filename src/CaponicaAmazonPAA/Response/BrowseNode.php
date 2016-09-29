@@ -31,6 +31,10 @@ class BrowseNode
         }
     }
 
+    // ##################################################
+    // #  auto-generated basic getters live below here  #
+    // ##################################################
+
     /**
      * @return string
      */
