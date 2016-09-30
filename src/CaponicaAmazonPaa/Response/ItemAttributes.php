@@ -110,6 +110,15 @@ class ItemAttributes
         }
     }
 
+    public function getLanguageListAsSortedString() {
+        $languages = [];
+        foreach ($this->languages as $language) {
+            $languages[] = $language;
+        }
+        sort($languages);
+        $languageList = implode(',', $languages);
+        return $languageList;
+    }
     // ##################################################
     // #  auto-generated basic getters live below here  #
     // ##################################################

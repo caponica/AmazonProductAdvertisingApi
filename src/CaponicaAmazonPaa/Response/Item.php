@@ -122,6 +122,18 @@ class Item
     {
         return $this->getMainImage();
     }
+    public function getBuyBoxOfferPriceAmount() {
+        if ($this->getOffers() && ($offerPrice = $this->getOffers()->getOfferPrice())) {
+            return $offerPrice->getAmount();
+        }
+        return null;
+    }
+    public function getBuyBoxOfferPriceCurrency() {
+        if ($this->getOffers() && ($offerPrice = $this->getOffers()->getOfferPrice())) {
+            return $offerPrice->getCurrencyCode();
+        }
+        return null;
+    }
 
     // ##################################################
     // #  auto-generated basic getters live below here  #
