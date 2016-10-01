@@ -96,8 +96,9 @@ class ItemAttributes
         }
         if ($source->Languages && $source->Languages->Language) {
             foreach ($source->Languages->Language as $language) {
-                $this->languages[] = (string)$language->Name; // What is Language->Type?
+                $this->languages[] = (string)$language->Name; // @todo - do we want to store language->Type as well?
             }
+            $this->languages = array_unique($this->languages);
         }
         if ($source->ItemDimensions) {
             $this->itemDimensions = new Dimensions($source->ItemDimensions);
