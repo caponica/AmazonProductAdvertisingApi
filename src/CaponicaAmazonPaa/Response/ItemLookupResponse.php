@@ -10,7 +10,8 @@ class ItemLookupResponse
     private $rawXml;
     private $parsedXml;
     private $operationRequest;
-    private $item;
+    /** @var  Item[] */
+    private $items = [];
 
     public function __construct($rawXml)
     {
@@ -20,7 +21,10 @@ class ItemLookupResponse
             $this->operationRequest = new OperationRequest($this->parsedXml->OperationRequest);
         }
         if ($this->parsedXml->Items && $this->parsedXml->Items->Item) {
-            $this->item = new Item($this->parsedXml->Items->Item);
+            foreach ($this->parsedXml->Items->Item as $item) {
+                $asin = (string)$item->ASIN;
+                $this->items[$asin] = new Item($item);
+            }
         }
     }
 
@@ -53,11 +57,11 @@ class ItemLookupResponse
     }
 
     /**
-     * @return Item
+     * @return Item[]
      */
-    public function getItem()
+    public function getItems()
     {
-        return $this->item;
+        return $this->items;
     }
 
 
