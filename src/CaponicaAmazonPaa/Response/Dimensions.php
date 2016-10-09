@@ -42,6 +42,14 @@ class Dimensions
     }
 
     /**
+     * @return int
+     * @throws \Exception
+     */
+    public function getWeightInGrams() {
+        $weightInGrams = ceil($this->getWeightInKg() * 1000);
+        return $weightInGrams;
+    }
+    /**
      * @return float
      * @throws \Exception
      */
