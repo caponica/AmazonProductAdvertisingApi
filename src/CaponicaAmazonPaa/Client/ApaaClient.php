@@ -64,6 +64,12 @@ class ApaaClient
     }
 
     // convenience methods for common calls
+    public function callItemLookupAttributes($itemId) {
+        $parameters = new ItemLookupParameterSet($itemId, [
+            ItemLookupParameterSet::PARAM_KEY_RESPONSE_GROUP => ItemLookupParameterSet::PARAM_VALUE_RESPONSE_GROUP_ITEM_ATTRIBUTES,
+        ]);
+        return $this->callItemLookupAndReturnObject($parameters);
+    }
     public function callItemLookupLarge($itemId) {
         $parameters = new ItemLookupParameterSet($itemId, [
             ItemLookupParameterSet::PARAM_KEY_RESPONSE_GROUP => ItemLookupParameterSet::PARAM_VALUE_RESPONSE_GROUP_LARGE,
