@@ -82,10 +82,34 @@ class Dimensions
         throw new \Exception("Unknown units for weight : " . $this->units['weight']);
     }
     /**
-     * @return array        array of three values (height, width, length) in inches, ordered from smallest to largest
+     * @deprecated          The name of this method was confusing. Use getNormalisedDimensionsInHundredthsInches() instead
+     *                      or use getNormalisedDimensionsInDecimalInches() if you want 'inch' values
+     * @return array
      * @throws \Exception
      */
     public function getNormalisedDimensionsInInches() {
+        return $this->getNormalisedDimensionsInHundredthsInches();
+    }
+    /**
+     * @return array        array of three values (height, width, length) in decimal inches, ordered from smallest to largest
+     *                      e.g. a value of [1.1,2,3] means 1.1x2x3 inches
+     * @throws \Exception
+     */
+    public function getNormalisedDimensionsInDecimalInches() {
+        $dimensions = $this->getNormalisedDimensionsInHundredthsInches();
+        $dimensions = [
+            $dimensions[0] / 100,
+            $dimensions[1] / 100,
+            $dimensions[2] / 100,
+        ];
+        return $dimensions;
+    }
+    /**
+     * @return array        array of three values (height, width, length) in hundredths of inches, ordered from smallest to largest
+     *                      e.g. a value of [100,200,300] means 1x2x3 inches
+     * @throws \Exception
+     */
+    public function getNormalisedDimensionsInHundredthsInches() {
         $dimensions = [];
         $directions = ['height', 'width', 'length'];
         foreach ($directions as $direction) {
