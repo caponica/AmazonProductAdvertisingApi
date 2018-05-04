@@ -135,6 +135,60 @@ class Item
         return null;
     }
 
+    public function getAllBarcodes() {
+        $barcodes = [];
+        if ($this->getItemAttributes()->getEanList()) {
+            foreach ($this->getItemAttributes()->getEanList() as $barcode) {
+                $barcodes[] = self::canonicalBarcode($barcode);
+            }
+        }
+        if ($this->getItemAttributes()->getUpcList()) {
+            foreach ($this->getItemAttributes()->getUpcList() as $barcode) {
+                $barcodes[] = self::canonicalBarcode($barcode);
+            }
+        }
+        if ($this->getItemAttributes()->getEan()) {
+            $barcodes[] = self::canonicalBarcode($this->getItemAttributes()->getEan());
+        }
+        if ($this->getItemAttributes()->getUpc()) {
+            $barcodes[] = self::canonicalBarcode($this->getItemAttributes()->getUpc());
+        }
+        $barcodes = array_unique($barcodes);
+        return $barcodes;
+    }
+
+    /**
+     * Left pads a barcode with zeros up to 13 characters (EAN-13 standard)
+     *
+     * @param $barcode
+     * @return string
+     */
+    public static function canonicalBarcode($barcode, $maxLength = 13) {
+        $barcode = ltrim(trim($barcode), '0');
+        return str_pad($barcode, $maxLength, '0', STR_PAD_LEFT);
+    }
+
+    public function getWeightInPounds() {
+        // cascade to prevent crash if any of the intermediate objects are missing
+        if (!$x = $this->getItemAttributes()) {
+            return null;
+        }
+        if (!$x = $x->getPackageDimensions()) {
+            return null;
+        }
+        return $x->getWeightInPounds();
+    }
+    public function getNormalisedDimensionsInDecimalInches() {
+        // cascade to prevent crash if any of the intermediate objects are missing
+        if (!$x = $this->getItemAttributes()) {
+            return null;
+        }
+        if (!$x = $x->getPackageDimensions()) {
+            return null;
+        }
+        return $x->getNormalisedDimensionsInDecimalInches();
+    }
+
     // ##################################################
     // #  auto-generated basic getters live below here  #
     // ##################################################
