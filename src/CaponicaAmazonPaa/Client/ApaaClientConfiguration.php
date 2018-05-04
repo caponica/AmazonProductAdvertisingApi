@@ -40,14 +40,17 @@ class ApaaClientConfiguration
         ];
     }
 
-    public static function buildFromArray($configArray=[]) {
+    public static function buildFromArray($configArray=[], $domainSuffix=null) {
         $requiredFields = [ 'access_key', 'secret_key', 'associate_tag' ];
         foreach ($requiredFields as $requiredField) {
             if (empty($configArray[$requiredField])) {
                 throw new \InvalidArgumentException('Missing ApaaClientConfiguration key ' . $requiredField);
             }
         }
-        if (empty($configArray['domain_suffix'])) {
+
+        if (!empty($domainSuffix)) {
+            $configArray['domain_suffix'] = $domainSuffix;
+        } elseif (empty($configArray['domain_suffix'])) {
             $configArray['domain_suffix'] = 'com';
         }
 
@@ -82,6 +85,9 @@ class ApaaClientConfiguration
     }
     public function getDomainSuffix() {
         return $this->domainSuffix;
+    }
+    public function setDomainSuffix($suffix) {
+        $this->domainSuffix = $suffix;
     }
 
     public function getEndpoint() {

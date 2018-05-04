@@ -16,8 +16,8 @@ class ApaaClient
      */
     private $configuration;
 
-    public static function buildFromArray($configArray) {
-        $configuration = ApaaClientConfiguration::buildFromArray($configArray);
+    public static function buildFromArray($configArray, $domainSuffix=null) {
+        $configuration = ApaaClientConfiguration::buildFromArray($configArray, $domainSuffix);
         return new ApaaClient($configuration);
     }
 
