@@ -9,9 +9,11 @@ class Dimensions
 {
     const CONVERSION_FACTOR_KG_TO_LB    = 2.20462;
 
-    const UNITS_LENGTH_HUNDREDTH_INCH   = 'hundredths-inches';
-    const UNITS_WEIGHT_HUNDREDTH_POUND  = 'hundredths-pounds';
-    const UNITS_WEIGHT_KILOGRAMS        = 'Kilograms';
+    const UNITS_LENGTH_HUNDREDTH_INCH       = 'hundredths-inches';
+    const UNITS_LENGTH_HUNDREDTH_INCH_DE    = 'Hundertstel Zoll';
+    const UNITS_WEIGHT_HUNDREDTH_POUND      = 'hundredths-pounds';
+    const UNITS_WEIGHT_HUNDREDTH_POUND_DE   = 'Hundertstel Pfund';
+    const UNITS_WEIGHT_KILOGRAMS            = 'Kilograms';
 
     private $height;
     private $length;
@@ -58,7 +60,7 @@ class Dimensions
             throw new \Exception("No weight given");
         } elseif (empty($this->units['weight'])) {
             throw new \Exception("Missing units for weight");
-        } elseif ($this->units['weight'] == self::UNITS_WEIGHT_HUNDREDTH_POUND) {
+        } elseif ($this->isUnitsHundredthPound($this->units['weight'])) {
             return $this->weight / 100 / self::CONVERSION_FACTOR_KG_TO_LB;
         } elseif ($this->units['weight'] == self::UNITS_WEIGHT_KILOGRAMS) {
             return $this->weight;
@@ -74,7 +76,7 @@ class Dimensions
             throw new \Exception("No weight given");
         } elseif (empty($this->units['weight'])) {
             throw new \Exception("Missing units for weight");
-        } elseif ($this->units['weight'] == self::UNITS_WEIGHT_HUNDREDTH_POUND) {
+        } elseif ($this->isUnitsHundredthPound($this->units['weight'])) {
             return $this->weight / 100;
         } elseif ($this->units['weight'] == self::UNITS_WEIGHT_KILOGRAMS) {
             return $this->weight * self::CONVERSION_FACTOR_KG_TO_LB;
@@ -117,7 +119,7 @@ class Dimensions
                 throw new \Exception("Missing dimension for $direction");
             } elseif (empty($this->units[$direction])) {
                 throw new \Exception("Missing units for $direction");
-            } elseif ($this->units[$direction] != self::UNITS_LENGTH_HUNDREDTH_INCH) { // @todo - does Amazon ever give decimal lengths?
+            } elseif (!$this->isUnitsHundredthInch($this->units[$direction])) { // @todo - does Amazon ever give decimal lengths?
                 throw new \Exception("Unknown units for $direction : " . $this->units[$direction]);
             } else {
                 $dimensions[] = $this->$direction;
@@ -127,6 +129,24 @@ class Dimensions
         return $dimensions;
     }
 
+    public function isUnitsHundredthInch($unitString) {
+        if ($unitString == self::UNITS_LENGTH_HUNDREDTH_INCH) {
+            return true;
+        }
+        if ($unitString == self::UNITS_LENGTH_HUNDREDTH_INCH_DE) {
+            return true;
+        }
+        return false;
+    }
+    public function isUnitsHundredthPound($unitString) {
+        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND_DE) {
+            return true;
+        }
+        return false;
+    }
     // ##################################################
     // #  auto-generated basic getters live below here  #
     // ##################################################
