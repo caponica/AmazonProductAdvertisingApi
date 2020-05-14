@@ -13,6 +13,7 @@ class Dimensions
     const UNITS_LENGTH_HUNDREDTH_INCH_DE    = 'Hundertstel Zoll';
     const UNITS_WEIGHT_HUNDREDTH_POUND      = 'hundredths-pounds';
     const UNITS_WEIGHT_HUNDREDTH_POUND_DE   = 'Hundertstel Pfund';
+    const UNITS_WEIGHT_HUNDREDTH_POUND_FR   = 'Centièmes de livre';
     const UNITS_WEIGHT_KILOGRAMS            = 'Kilograms';
 
     private $height;
@@ -143,6 +144,9 @@ class Dimensions
             return true;
         }
         if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND_DE) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND_FR) {
             return true;
         }
         return false;
