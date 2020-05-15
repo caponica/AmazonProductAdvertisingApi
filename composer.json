@@ -17,6 +17,9 @@
   },
 
   "autoload": {
-    "psr-0": { "CaponicaAmazonPaa\\": "src/" }
+    "psr-0": {
+      "CaponicaAmazonPaa\\": "src/",
+      "Amazon\\ProductAdvertisingAPI\\v1\\": "src/AmazonPhpPaaLibrary/"
+    }
   }
 }
