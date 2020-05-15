@@ -10,7 +10,7 @@ use CaponicaAmazonPaa\Client\ApaaClientConfiguration;
 class GenericParameterSet
 {
     const PARAM_KEY_ACCESS_KEY              = 'AWSAccessKeyId';
-    const PARAM_KEY_ASSOCIATE_TAG           = 'AssociateTag';
+    const PARAM_KEY_PARTNER_TAG             = 'PartnerTag';
     const PARAM_KEY_OPERATION               = 'Operation';
     const PARAM_KEY_SERVICE                 = 'Service';
     const PARAM_KEY_TIMESTAMP               = 'Timestamp';
@@ -36,7 +36,7 @@ class GenericParameterSet
             $this->parameters[self::PARAM_KEY_TIMESTAMP] = gmdate('Y-m-d\TH:i:s\Z');
         }
         $this->addParameter(self::PARAM_KEY_ACCESS_KEY,     $configuration->getAccessKey());
-        $this->addParameter(self::PARAM_KEY_ASSOCIATE_TAG,  $configuration->getAssociateTag());
+        $this->addParameter(self::PARAM_KEY_PARTNER_TAG,    $configuration->getPartnerTag());
         $this->addParameter(self::PARAM_KEY_SERVICE,        self::PARAM_VALUE_SERVICE);
 
         ksort($this->parameters);
