@@ -4,6 +4,7 @@ namespace CaponicaAmazonPaa\Client;
 
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\api\DefaultApi;
 use Amazon\ProductAdvertisingAPI\v1\Configuration;
+use GuzzleHttp\Client;
 
 /**
  * Client to connect to the Amazon Product Advertising API
@@ -186,7 +187,7 @@ class ApaaClientConfiguration
         $config->setRegion($this->getRegion());
 
         $apiInstance = new DefaultApi(
-            new GuzzleHttp\Client(),
+            new Client(),
             $config
         );
 

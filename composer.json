@@ -13,12 +13,15 @@
   ],
 
   "require": {
-    "php": ">=5.4.0"
+    "php": ">=5.4.0",
+    "guzzlehttp/guzzle" : "^6.2"
   },
 
   "autoload": {
+    "psr-0": {
+      "CaponicaAmazonPaa\\": "src/"
+    },
     "psr-4": {
-      "CaponicaAmazonPaa\\": "src/",
       "Amazon\\ProductAdvertisingAPI\\v1\\": "src/AmazonPhpPaaLibrary/"
     }
   }
