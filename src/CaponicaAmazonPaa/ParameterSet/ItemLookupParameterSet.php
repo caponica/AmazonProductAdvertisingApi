@@ -4,6 +4,7 @@ namespace CaponicaAmazonPaa\ParameterSet;
 
 /**
  * A generic set of parameters for a PAA request
+ * @deprecated - not used for PAA v5
  */
 class ItemLookupParameterSet extends GenericParameterSet
 {

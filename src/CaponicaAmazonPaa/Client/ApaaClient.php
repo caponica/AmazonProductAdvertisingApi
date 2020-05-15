@@ -5,10 +5,9 @@ namespace CaponicaAmazonPaa\Client;
 use Amazon\ProductAdvertisingAPI\v1\ApiException;
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsRequest;
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResource;
-use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\PartnerType;
-use CaponicaAmazonPaa\ParameterSet\GenericParameterSet;
-use CaponicaAmazonPaa\ParameterSet\ItemLookupParameterSet;
-use CaponicaAmazonPaa\Response\ItemLookupResponse;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResponse;
+use CaponicaAmazonPaa\ParameterSet\GetItemsParameterSet;
+use CaponicaAmazonPaa\Response\Item;
 
 /**
  * Client to connect to the Amazon Product Advertising API
@@ -39,157 +38,205 @@ class ApaaClient
         return $this->configuration->getCountryCode();
     }
 
-    public function getItems($itemIds, $resources=null, $extraParams=[]) {
-        $getItemsRequest = new GetItemsRequest($extraParams);
-        $getItemsRequest->setItemIds($itemIds);
-        $getItemsRequest->setResources($resources);
-        $getItemsRequest->setPartnerTag($this->configuration->getPartnerTag());
-        $getItemsRequest->setPartnerType(PartnerType::ASSOCIATES);
-
-        $invalidPropertyList = $getItemsRequest->listInvalidProperties();
+    protected function validateRequestObject($requestObject) {
+        $invalidPropertyList = $requestObject->listInvalidProperties();
         $length = count($invalidPropertyList);
         if ($length > 0) {
-            $errorMessage = "Error forming PAA.getItems() request" . PHP_EOL;
+            $requestClass = get_class($requestObject);
+            $errorMessage = "Error forming PAA5 $requestClass request" . PHP_EOL;
             foreach ($invalidPropertyList as $invalidProperty) {
                 $errorMessage .= $invalidProperty . PHP_EOL;
             }
             throw new \InvalidArgumentException($errorMessage);
         }
+    }
 
+    /**
+     * @param GetItemsRequest $getItemsRequest
+     * @return GetItemsResponse
+     * @throws \ApiException
+     */
+    protected function validateAndCallGetItems(GetItemsRequest $getItemsRequest) {
+        // Validate
+        $this->validateRequestObject($getItemsRequest);
+print_r($getItemsRequest);
         # Sending the request
         try {
             $getItemsResponse = $this->apiInstance->getItems($getItemsRequest);
-
 echo 'PAA called successfully', PHP_EOL;
 echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
-
-            # Parsing the response
-            if ($getItemsResponse->getItemsResult() !== null) {
-echo 'Printing all item information in ItemsResult:', PHP_EOL;
-                if ($getItemsResponse->getItemsResult()->getItems() !== null) {
-                    $mappedResponse = [];
-                    foreach ($getItemsResponse->getItemsResult()->getItems() as $item) {
-                        $mappedResponse[$item->getASIN()] = $item;
-                    }
-                    $responseList = $mappedResponse;
-
-                    foreach ($itemIds as $itemId) {
-echo 'Printing information about the itemId: ', $itemId, PHP_EOL;
-                        $item = $responseList[$itemId];
-                        if ($item !== null) {
-                            if ($item->getASIN()) {
-                                echo 'ASIN: ', $item->getASIN(), PHP_EOL;
-                            }
-                            if ($item->getItemInfo() !== null and $item->getItemInfo()->getTitle() !== null
-                                and $item->getItemInfo()->getTitle()->getDisplayValue() !== null) {
-                                echo 'Title: ', $item->getItemInfo()->getTitle()->getDisplayValue(), PHP_EOL;
-                            }
-                            if ($item->getDetailPageURL() !== null) {
-                                echo 'Detail Page URL: ', $item->getDetailPageURL(), PHP_EOL;
-                            }
-                            if ($item->getOffers() !== null and
-                                $item->getOffers()->getListings() !== null
-                                and $item->getOffers()->getListings()[0]->getPrice() !== null
-                                and $item->getOffers()->getListings()[0]->getPrice()->getDisplayAmount() !== null) {
-                                echo 'Buying price: ', $item->getOffers()->getListings()[0]->getPrice()
-                                    ->getDisplayAmount(), PHP_EOL;
-                            }
-                        } else {
-                            echo "Item not found, check errors", PHP_EOL;
-                        }
-                    }
-                }
-            }
-            if ($getItemsResponse->getErrors() !== null) {
-                echo PHP_EOL, 'Printing Errors:', PHP_EOL, 'Printing first error object from list of errors', PHP_EOL;
-                echo 'Error code: ', $getItemsResponse->getErrors()[0]->getCode(), PHP_EOL;
-                echo 'Error message: ', $getItemsResponse->getErrors()[0]->getMessage(), PHP_EOL;
-            }
         } catch (ApiException $exception) {
-            echo "Error calling PA-API 5.0!", PHP_EOL;
-            echo "HTTP Status Code: ", $exception->getCode(), PHP_EOL;
-            echo "Error Message: ", $exception->getMessage(), PHP_EOL;
+            $errorMessage = "\n*** ApiException ERROR calling PA-API 5.0 ***";
+            $errorMessage .= "\nHTTP Status Code: {$exception->getCode()}";
+            $errorMessage .= "\nError Message: {$exception->getMessage()}";
+
             if ($exception->getResponseObject() instanceof ProductAdvertisingAPIClientException) {
                 $errors = $exception->getResponseObject()->getErrors();
                 foreach ($errors as $error) {
-                    echo "Error Type: ", $error->getCode(), PHP_EOL;
-                    echo "Error Message: ", $error->getMessage(), PHP_EOL;
+                    $errorMessage .= "\n\nError Type: {$error->getCode()}";
+                    $errorMessage .= "\nError Message: {$error->getMessage()}";
                 }
             } else {
-                echo "Error response body: ", $exception->getResponseBody(), PHP_EOL;
+                $errorMessage .= "\n\nError response body: {$exception->getResponseBody()}";
             }
-        } catch (\Exception $exception) {
-            echo "Error Message: ", $exception->getMessage(), PHP_EOL;
+            throw new \Exception($errorMessage);
         }
+
+        # Parsing the response
+        if ($getItemsResponse->getErrors() !== null) {
+            $errorMessage = "\nErrors returned from PAA5 API:\n";
+            foreach ($getItemsResponse->getErrors() as $errorObject) {
+                $errorMessage .= "\nError #{$errorObject->getCode()}: {$errorObject->getMessage()}";
+            }
+            throw new \Exception($errorMessage);
+        }
+
+        return $getItemsResponse;
     }
 
-### OLD CODE BELOW HERE ###
+    /**
+     * @param string|array $itemIds
+     * @param array $resources
+     * @param array $extraParams
+     * @return Item[]|GetItemsResponse
+     * @throws \Exception
+     */
+    protected function getItems($itemIds, $resources=null, $extraParams=[], $returnItemsInsteadOfResponse=false) {
+        if (!empty($itemIds) && !is_array($itemIds)) {
+            $itemIds = [$itemIds];
+        }
 
-    private function makeApiCall(GenericParameterSet $parameters) {
-        $url = $parameters->generateSignedUrlForConfiguration($this->configuration);
+        $ps = GetItemsParameterSet::generateParameterSetNewOnly();
+        $ps->mergeParameters($extraParams);
 
-        $curl = \curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_URL => $url,
-        ));
+        $getItemsRequest = new GetItemsRequest($ps->getParameters());
+        $getItemsRequest->setItemIds($itemIds);
+        $getItemsRequest->setResources($resources);
+        $getItemsRequest->setPartnerTag($this->configuration->getPartnerTag());
+        $getItemsRequest->setMarketplace($this->configuration->getMarketplace());
 
-        $response = curl_exec($curl);
-        curl_close($curl);
+        $getItemsResponse = $this->validateAndCallGetItems($getItemsRequest);
 
-        return $response;
+        if ($returnItemsInsteadOfResponse) {
+            $mappedResponse = [];
+            if ($getItemsResponse->getItemsResult() !== null) {
+                if ($getItemsResponse->getItemsResult()->getItems() !== null) {
+                    foreach ($getItemsResponse->getItemsResult()->getItems() as $item) {
+                        $mappedResponse[$item->getASIN()] = new Item($item);
+                    }
+                }
+            }
+            return $mappedResponse;
+        }
+
+        return $getItemsResponse;
     }
 
-    // plain calls to the API, which return the XML response
-    public function callItemLookupAndReturnXml(GenericParameterSet $parameters) {
-        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, GenericParameterSet::PARAM_VALUE_OPERATION_ITEM_LOOKUP);
-        return $this->makeApiCall($parameters);
+    /**
+     * @param string|array $itemIds
+     * @param array $resources
+     * @param array $extraParams
+     * @return Item[]|GetItemsResponse
+     * @throws \Exception
+     */
+    public function getItemsAndReturnResponse($itemIds, $resources=null, $extraParams=[]) {
+        return $this->getItems($itemIds, $resources, $extraParams, false);
     }
-    public function callItemSearchAndReturnXml(GenericParameterSet $parameters) {
-        $parameters->addParameter(GenericParameterSet::PARAM_KEY_OPERATION, GenericParameterSet::PARAM_VALUE_OPERATION_ITEM_SEARCH);
-        return $this->makeApiCall($parameters);
+    /**
+     * @param string|array $itemIds
+     * @param array $resources
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function getItemsAndReturnAsinMappedItems($itemIds, $resources=null, $extraParams=[]) {
+        return $this->getItems($itemIds, $resources, $extraParams, true);
     }
 
-    // wrapped calls to the API, which return Response objects
-    public function callItemLookupAndReturnObject(GenericParameterSet $parameters) {
-        $apiResponse = $this->callItemLookupAndReturnXml($parameters);
-        return new ItemLookupResponse($apiResponse);
-    }
-
-    // convenience methods for common calls
-    public function callItemLookupAttributes($itemId) {
-        $parameters = new ItemLookupParameterSet($itemId, [
-            ItemLookupParameterSet::PARAM_KEY_RESPONSE_GROUP => ItemLookupParameterSet::PARAM_VALUE_RESPONSE_GROUP_ITEM_ATTRIBUTES,
-        ]);
-        return $this->callItemLookupAndReturnObject($parameters);
-    }
-    public function callItemLookupLarge($itemId) {
-        $parameters = new ItemLookupParameterSet($itemId, [
-            ItemLookupParameterSet::PARAM_KEY_RESPONSE_GROUP => ItemLookupParameterSet::PARAM_VALUE_RESPONSE_GROUP_LARGE,
-        ]);
-        return $this->callItemLookupAndReturnObject($parameters);
-    }
-    public function callItemLookupFull($itemIds) {
+    /**
+     * Looks up the given itemIds and returns the full set of Resources
+     *
+     * @param $itemIds
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     * @throws ApiException
+     */
+    public function callItemLookupFull($itemIds, $extraParams=[]) {
         $resources = [
+            GetItemsResource::BROWSE_NODE_INFOBROWSE_NODES,
+            GetItemsResource::BROWSE_NODE_INFOBROWSE_NODESANCESTOR,
+            GetItemsResource::BROWSE_NODE_INFOBROWSE_NODESSALES_RANK,
             GetItemsResource::BROWSE_NODE_INFOWEBSITE_SALES_RANK,
-            GetItemsResource::OFFERSLISTINGSAVAILABILITYMIN_ORDER_QUANTITY,
+            GetItemsResource::CUSTOMER_REVIEWSCOUNT,
+            GetItemsResource::CUSTOMER_REVIEWSSTAR_RATING,
+//            GetItemsResource::IMAGESPRIMARYSMALL,
+//            GetItemsResource::IMAGESPRIMARYMEDIUM,
+            GetItemsResource::IMAGESPRIMARYLARGE,
+//            GetItemsResource::IMAGESVARIANTSSMALL,
+//            GetItemsResource::IMAGESVARIANTSMEDIUM,
+            GetItemsResource::IMAGESVARIANTSLARGE,
+            GetItemsResource::ITEM_INFOBY_LINE_INFO,
+            GetItemsResource::ITEM_INFOCONTENT_INFO,
+            GetItemsResource::ITEM_INFOCONTENT_RATING,
+            GetItemsResource::ITEM_INFOCLASSIFICATIONS,
+            GetItemsResource::ITEM_INFOEXTERNAL_IDS,
+            GetItemsResource::ITEM_INFOFEATURES,
+            GetItemsResource::ITEM_INFOMANUFACTURE_INFO,
+            GetItemsResource::ITEM_INFOPRODUCT_INFO,
+            GetItemsResource::ITEM_INFOTECHNICAL_INFO,
+            GetItemsResource::ITEM_INFOTITLE,
+            GetItemsResource::ITEM_INFOTRADE_IN_INFO,
             GetItemsResource::OFFERSLISTINGSAVAILABILITYMAX_ORDER_QUANTITY,
             GetItemsResource::OFFERSLISTINGSAVAILABILITYMESSAGE,
+            GetItemsResource::OFFERSLISTINGSAVAILABILITYMIN_ORDER_QUANTITY,
             GetItemsResource::OFFERSLISTINGSAVAILABILITYTYPE,
-            GetItemsResource::OFFERSLISTINGSIS_BUY_BOX_WINNER,
             GetItemsResource::OFFERSLISTINGSCONDITION,
+            GetItemsResource::OFFERSLISTINGSCONDITIONSUB_CONDITION,
             GetItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_AMAZON_FULFILLED,
+            GetItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_FREE_SHIPPING_ELIGIBLE,
             GetItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_PRIME_ELIGIBLE,
+            GetItemsResource::OFFERSLISTINGSDELIVERY_INFOSHIPPING_CHARGES,
+            GetItemsResource::OFFERSLISTINGSIS_BUY_BOX_WINNER,
+            GetItemsResource::OFFERSLISTINGSLOYALTY_POINTSPOINTS,
             GetItemsResource::OFFERSLISTINGSMERCHANT_INFO,
             GetItemsResource::OFFERSLISTINGSPRICE,
             GetItemsResource::OFFERSLISTINGSPROGRAM_ELIGIBILITYIS_PRIME_EXCLUSIVE,
+            GetItemsResource::OFFERSLISTINGSPROGRAM_ELIGIBILITYIS_PRIME_PANTRY,
             GetItemsResource::OFFERSLISTINGSPROMOTIONS,
-            GetItemsResource::OFFERSSUMMARIESOFFER_COUNT,
-            GetItemsResource::OFFERSSUMMARIESLOWEST_PRICE,
+            GetItemsResource::OFFERSLISTINGSSAVING_BASIS,
             GetItemsResource::OFFERSSUMMARIESHIGHEST_PRICE,
+            GetItemsResource::OFFERSSUMMARIESLOWEST_PRICE,
+            GetItemsResource::OFFERSSUMMARIESOFFER_COUNT,
+            GetItemsResource::PARENT_ASIN,
         ];
-        $this->getItems($itemIds, $resources);
 
-        //        return $this->callItemLookupAndReturnObject($parameters);
+        return $this->getItemsAndReturnAsinMappedItems($itemIds, $resources, $extraParams);
+    }
+
+    public function callItemLookupAttributes($itemIds, $extraParams=[]) {
+        $resources = [
+            GetItemsResource::BROWSE_NODE_INFOWEBSITE_SALES_RANK,
+            GetItemsResource::ITEM_INFOCONTENT_INFO,
+            GetItemsResource::ITEM_INFOEXTERNAL_IDS,
+            GetItemsResource::ITEM_INFOFEATURES,
+            GetItemsResource::ITEM_INFOPRODUCT_INFO,
+            GetItemsResource::ITEM_INFOTITLE,
+        ];
+
+        return $this->getItemsAndReturnAsinMappedItems($itemIds, $resources, $extraParams);
+    }
+
+    public function errorMessageIsAboutInvalidAsins($errorMsg) {
+        $invalidAsins = [];
+        $matches = [];
+        $pattern = '/InvalidParameterValue: The ItemId ([0-9A-Z]+) provided in the request is invalid./';
+        if (preg_match_all($pattern, $errorMsg, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $matchArray) {
+                $invalidAsins[$matchArray[1]] = $matchArray[0];
+            }
+            return $invalidAsins;
+        }
+        return false;
     }
 }

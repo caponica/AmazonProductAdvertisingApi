@@ -158,6 +158,9 @@ class ApaaClientConfiguration
     public function getRegion() {
         return $this->region;
     }
+    public function getMarketplace() {
+        return 'www.amazon.' . $this->getDomainSuffix();
+    }
 
 //    public function getEndpoint() {
 //        return $this->getProtocol() . $this->getHost();

@@ -2,6 +2,8 @@
 
 namespace CaponicaAmazonPaa\Response;
 
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\ItemInfo;
+
 /**
  * Represents Dimensions returned by a PAA response
  */
@@ -9,12 +11,20 @@ class Dimensions
 {
     const CONVERSION_FACTOR_KG_TO_LB    = 2.20462;
 
-    const UNITS_LENGTH_HUNDREDTH_INCH       = 'hundredths-inches';
-    const UNITS_LENGTH_HUNDREDTH_INCH_DE    = 'Hundertstel Zoll';
-    const UNITS_WEIGHT_HUNDREDTH_POUND      = 'hundredths-pounds';
-    const UNITS_WEIGHT_HUNDREDTH_POUND_DE   = 'Hundertstel Pfund';
-    const UNITS_WEIGHT_HUNDREDTH_POUND_FR   = 'Centièmes de livre';
-    const UNITS_WEIGHT_KILOGRAMS            = 'Kilograms';
+    const UNITS_WEIGHT_KILOGRAMS            = 'kilograms';
+    const UNITS_WEIGHT_POUND                = 'pounds';
+    const UNITS_WEIGHT_POUND_DE             = 'zoll';
+    const UNITS_WEIGHT_POUND_ES             = 'libras'; // not checked
+    const UNITS_WEIGHT_POUND_FR             = 'livres';
+    const UNITS_WEIGHT_POUND_IT             = 'sterline'; // not checked
+    const UNITS_WEIGHT_POUND_NL             = 'pond'; // not checked
+
+    const UNITS_LENGTH_INCH                 = 'inches';
+    const UNITS_LENGTH_INCH_DE              = 'zoll';
+    const UNITS_LENGTH_INCH_ES              = 'pulgadas'; // not checked
+    const UNITS_LENGTH_INCH_FR              = 'pouces';
+    const UNITS_LENGTH_INCH_IT              = 'pollice'; // not checked
+    const UNITS_LENGTH_INCH_NL              = 'inch'; // not checked
 
     private $height;
     private $length;
@@ -27,23 +37,40 @@ class Dimensions
         'weight' => null,
     ];
 
-    public function __construct(\SimpleXMLElement $source) {
-        $integerFields = [
-            'Height' => 'height',
-            'Length' => 'length',
-            'Weight' => 'weight',
-            'Width'  => 'width',
-        ];
-        foreach ($integerFields as $xmlName => $propertyName) {
-            if ($source->$xmlName) {
-                $this->$propertyName = (int)$source->$xmlName;
-                if ($source->{$xmlName}['Units']) {
-                    $this->units[$propertyName] = $source->{$xmlName}['Units'];
-                }
-            }
+    public function __construct(ItemInfo $itemInfo) {
+        if (!$itemInfo->getProductInfo()) {
+            throw new \InvalidArgumentException('No productInfo provided in Dimensions constructor');
+        }
+        if (!$itemDimensions = $itemInfo->getProductInfo()->getItemDimensions()) {
+            throw new \InvalidArgumentException('No itemDimensions provided in Dimensions constructor');
+        }
+
+        $weight = $itemInfo->getProductInfo()->getItemDimensions()->getWeight();
+        $height = $itemInfo->getProductInfo()->getItemDimensions()->getHeight();
+        $length = $itemInfo->getProductInfo()->getItemDimensions()->getLength();
+        $width  = $itemInfo->getProductInfo()->getItemDimensions()->getWidth();
+
+        if ($weight) {
+            $this->weight = $weight->getDisplayValue();
+            $this->units['weight'] = $weight->getUnit();
+        }
+        if ($height) {
+            $this->height = $height->getDisplayValue();
+            $this->units['height'] = $height->getUnit();
+        }
+        if ($length) {
+            $this->length = $length->getDisplayValue();
+            $this->units['length'] = $length->getUnit();
+        }
+        if ($width) {
+            $this->width = $width->getDisplayValue();
+            $this->units['width'] = $width->getUnit();
         }
     }
 
+    public function hasWeight() {
+        return !empty($this->weight) && !empty($this->units['weight']);
+    }
     /**
      * @return int
      * @throws \Exception
@@ -57,13 +84,11 @@ class Dimensions
      * @throws \Exception
      */
     public function getWeightInKg() {
-        if (empty($this->weight)) {
+        if (!$this->hasWeight()) {
             throw new \Exception("No weight given");
-        } elseif (empty($this->units['weight'])) {
-            throw new \Exception("Missing units for weight");
-        } elseif ($this->isUnitsHundredthPound($this->units['weight'])) {
-            return $this->weight / 100 / self::CONVERSION_FACTOR_KG_TO_LB;
-        } elseif ($this->units['weight'] == self::UNITS_WEIGHT_KILOGRAMS) {
+        } elseif ($this->isUnitsPounds($this->units['weight'])) {
+            return $this->weight / self::CONVERSION_FACTOR_KG_TO_LB;
+        } elseif ($this->isUnitsKilograms($this->units['weight'])) {
             return $this->weight;
         }
         throw new \Exception("Unknown units for weight : " . $this->units['weight']);
@@ -75,44 +100,20 @@ class Dimensions
     public function getWeightInPounds() {
         if (empty($this->weight)) {
             throw new \Exception("No weight given");
-        } elseif (empty($this->units['weight'])) {
-            throw new \Exception("Missing units for weight");
-        } elseif ($this->isUnitsHundredthPound($this->units['weight'])) {
-            return $this->weight / 100;
-        } elseif ($this->units['weight'] == self::UNITS_WEIGHT_KILOGRAMS) {
+        } elseif ($this->isUnitsPounds($this->units['weight'])) {
+            return $this->weight;
+        } elseif ($this->isUnitsKilograms($this->units['weight'])) {
             return $this->weight * self::CONVERSION_FACTOR_KG_TO_LB;
         }
         throw new \Exception("Unknown units for weight : " . $this->units['weight']);
     }
-    /**
-     * @deprecated          The name of this method was confusing. Use getNormalisedDimensionsInHundredthsInches() instead
-     *                      or use getNormalisedDimensionsInDecimalInches() if you want 'inch' values
-     * @return array
-     * @throws \Exception
-     */
-    public function getNormalisedDimensionsInInches() {
-        return $this->getNormalisedDimensionsInHundredthsInches();
-    }
+
     /**
      * @return array        array of three values (height, width, length) in decimal inches, ordered from smallest to largest
      *                      e.g. a value of [1.1,2,3] means 1.1x2x3 inches
      * @throws \Exception
      */
     public function getNormalisedDimensionsInDecimalInches() {
-        $dimensions = $this->getNormalisedDimensionsInHundredthsInches();
-        $dimensions = [
-            $dimensions[0] / 100,
-            $dimensions[1] / 100,
-            $dimensions[2] / 100,
-        ];
-        return $dimensions;
-    }
-    /**
-     * @return array        array of three values (height, width, length) in hundredths of inches, ordered from smallest to largest
-     *                      e.g. a value of [100,200,300] means 1x2x3 inches
-     * @throws \Exception
-     */
-    public function getNormalisedDimensionsInHundredthsInches() {
         $dimensions = [];
         $directions = ['height', 'width', 'length'];
         foreach ($directions as $direction) {
@@ -120,7 +121,7 @@ class Dimensions
                 throw new \Exception("Missing dimension for $direction");
             } elseif (empty($this->units[$direction])) {
                 throw new \Exception("Missing units for $direction");
-            } elseif (!$this->isUnitsHundredthInch($this->units[$direction])) { // @todo - does Amazon ever give decimal lengths?
+            } elseif (!$this->isUnitsInches($this->units[$direction])) {
                 throw new \Exception("Unknown units for $direction : " . $this->units[$direction]);
             } else {
                 $dimensions[] = $this->$direction;
@@ -129,24 +130,68 @@ class Dimensions
         sort($dimensions);
         return $dimensions;
     }
+    /**
+     * @return array        array of three values (height, width, length) in hundredths of inches, ordered from smallest to largest
+     *                      e.g. a value of [100,200,300] means 1x2x3 inches
+     * @throws \Exception
+     */
+    public function getNormalisedDimensionsInHundredthsInches() {
+        $dimensions = $this->getNormalisedDimensionsInDecimalInches();
+        $dimensions = [
+            $dimensions[0] * 100,
+            $dimensions[1] * 100,
+            $dimensions[2] * 100,
+        ];
+        return $dimensions;
+    }
 
-    public function isUnitsHundredthInch($unitString) {
-        if ($unitString == self::UNITS_LENGTH_HUNDREDTH_INCH) {
+    public function isUnitsInches($unitString) {
+        $unitString = strtolower($unitString);
+        if ($unitString == self::UNITS_LENGTH_INCH) {
             return true;
         }
-        if ($unitString == self::UNITS_LENGTH_HUNDREDTH_INCH_DE) {
+        if ($unitString == self::UNITS_LENGTH_INCH_DE) {
+            return true;
+        }
+        if ($unitString == self::UNITS_LENGTH_INCH_ES) {
+            return true;
+        }
+        if ($unitString == self::UNITS_LENGTH_INCH_FR) {
+            return true;
+        }
+        if ($unitString == self::UNITS_LENGTH_INCH_IT) {
+            return true;
+        }
+        if ($unitString == self::UNITS_LENGTH_INCH_NL) {
             return true;
         }
         return false;
     }
-    public function isUnitsHundredthPound($unitString) {
-        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND) {
+    private function isUnitsKilograms($unitString) {
+        $unitString = strtolower($unitString);
+        if ($unitString == self::UNITS_WEIGHT_KILOGRAMS) {
             return true;
         }
-        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND_DE) {
+        return false;
+    }
+    private function isUnitsPounds($unitString) {
+        $unitString = strtolower($unitString);
+        if ($unitString == self::UNITS_WEIGHT_POUND) {
             return true;
         }
-        if ($unitString == self::UNITS_WEIGHT_HUNDREDTH_POUND_FR) {
+        if ($unitString == self::UNITS_WEIGHT_POUND_DE) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_POUND_ES) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_POUND_FR) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_POUND_IT) {
+            return true;
+        }
+        if ($unitString == self::UNITS_WEIGHT_POUND_NL) {
             return true;
         }
         return false;

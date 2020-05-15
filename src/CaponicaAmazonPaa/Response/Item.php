@@ -2,114 +2,26 @@
 
 namespace CaponicaAmazonPaa\Response;
 
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\BrowseNode as BrowseNode;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\ImageSize;
+
 /**
  * Represents an item returned by a PAA response
  */
 class Item
 {
-    const ITEM_LINK_NAME_ADD_TO_WISHLIST  = 'Add To Wishlist';
-    const ITEM_LINK_NAME_TELL_A_FRIEND    = 'Tell A Friend';
-    const ITEM_LINK_NAME_CUSTOMER_REVIEWS = 'All Customer Reviews';
-    const ITEM_LINK_NAME_IFRAME_REVIEWS   = 'iFrame Reviews';
-    const ITEM_LINK_NAME_ALL_OFFERS       = 'All Offers';
+    /** @var \Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\Item */
+    private $paaItem;
 
-    /** @var string */
-    private $asin;
-    /** @var string */
-    private $parentAsin;
-    /** @var string */
-    private $detailPageUrl;
-    /** @var array */
-    private $itemLinks = [];
-    /** @var int */
-    private $salesRank;
-    /** @var Image */
-    private $mainImage;
-    /** @var ItemAttributes */
-    private $itemAttributes;
-    private $secondaryImages = []; // from ImageSets. Does not include main image (which is in mainImage)
-    private $offerSummary;  // @todo (it's not very useful since LowestNewPrice given excludes postage)
-    /** @var OfferCollection */
-    private $offers;
-    /** @var bool */
-    private $hasCustomerReviews;
-    /** @var string */
-    private $editorialSource;
-    /** @var string */
-    private $editorialContent;
-    /** @var bool */
-    private $editorialIsLinkSuppressed;
-    /** @var SimilarProduct[] */
-    private $similarProducts = [];
-    /** @var BrowseNode[]  */
-    private $browseNodes = [];
+    /** @var Dimensions */
+    private $dimensions;
 
-    public function __construct(\SimpleXMLElement $source) {
-        if ($source->ASIN) {
-            $this->asin = (string)$source->ASIN;
-        }
-        if ($source->ParentASIN) {
-            $this->parentAsin = (string)$source->ParentASIN;
-        }
-        if ($source->DetailPageURL) {
-            $this->detailPageUrl = (string)$source->DetailPageURL;
-        }
-        if ($source->ItemLinks && $source->ItemLinks->ItemLink) {
-            foreach ($source->ItemLinks->ItemLink as $itemLink) {
-                $name  = (string)$itemLink['Description'];
-                $value = (string)$itemLink['URL'];
-                $this->itemLinks[$name] = $value;
-            }
-        }
-        if ($source->SalesRank) {
-            $this->salesRank = (int)$source->SalesRank;
-        }
-        if ($source->LargeImage) {
-            $this->mainImage = new Image($source->LargeImage);
-        }
-        if ($source->ImageSets && $source->ImageSets->ImageSet) {
-            foreach ($source->ImageSets->ImageSet as $imageSet) {
-                if ($imageSet->LargeImage && $imageSet->LargeImage->URL) {
-                    if ($this->mainImage && $this->mainImage->getUrl() == $imageSet->LargeImage->URL) {
-                        continue;
-                    }
-                    $this->secondaryImages[] = new Image($imageSet->LargeImage);
-                }
-            }
-        }
-        if ($source->ItemAttributes) {
-            $this->itemAttributes = new ItemAttributes($source->ItemAttributes);
-        }
-        if ($source->Offers) {
-            $this->offers = new OfferCollection($source->Offers);
-        }
-        if ($source->CustomerReviews && $source->CustomerReviews->IFrameURL) {
-            $this->itemLinks[self::ITEM_LINK_NAME_IFRAME_REVIEWS] = (string)$source->CustomerReviews->IFrameURL;
-        }
-        if ($source->CustomerReviews && $source->CustomerReviews->HasReviews) {
-            $this->hasCustomerReviews = 'true'==(string)$source->CustomerReviews->HasReviews;
-        }
-        if ($source->EditorialReviews && $source->EditorialReviews->EditorialReview) {
-            $editorialReview = $source->EditorialReviews->EditorialReview;
-            if ($editorialReview->Source) {
-                $this->editorialSource = (string)$editorialReview->Source;
-            }
-            if ($editorialReview->Content) {
-                $this->editorialContent = (string)$editorialReview->Content;
-            }
-            if ($editorialReview->IsLinkSuppressed) {
-                $this->editorialIsLinkSuppressed = (string)$editorialReview->IsLinkSuppressed;
-            }
-        }
-        if ($source->SimilarProducts && $source->SimilarProducts->SimilarProduct) {
-            foreach ($source->SimilarProducts->SimilarProduct as $similarProduct) {
-                $this->similarProducts[] = new SimilarProduct($similarProduct);
-            }
-        }
-        if ($source->BrowseNodes && $source->BrowseNodes->BrowseNode) {
-            foreach ($source->BrowseNodes->BrowseNode as $browseNode) {
-                $this->browseNodes[] = new BrowseNode($browseNode);
-            }
+    public function __construct(\Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\Item $paaItem) {
+        $this->paaItem = $paaItem;
+        try {
+            $this->dimensions = new Dimensions($paaItem->getItemInfo());
+        } catch (\InvalidArgumentException $e) {
+            // No dimensions returned
         }
     }
 
@@ -123,35 +35,54 @@ class Item
         return $this->getMainImage();
     }
     public function getBuyBoxOfferPriceAmount() {
-        if ($this->getOffers() && ($offerPrice = $this->getOffers()->getOfferPrice())) {
-            return $offerPrice->getAmount();
+        if ($this->paaItem->getOffers() && $this->paaItem->getOffers()->getListings()) {
+            foreach ($this->paaItem->getOffers()->getListings() as $listing) {
+                if ($listing->getIsBuyBoxWinner()) {
+                    return $listing->getPrice()->getAmount();
+                }
+            }
         }
         return null;
     }
     public function getBuyBoxOfferPriceCurrency() {
-        if ($this->getOffers() && ($offerPrice = $this->getOffers()->getOfferPrice())) {
-            return $offerPrice->getCurrencyCode();
+        if ($this->paaItem->getOffers() && $this->paaItem->getOffers()->getListings()) {
+            foreach ($this->paaItem->getOffers()->getListings() as $listing) {
+                if ($listing->getIsBuyBoxWinner()) {
+                    return $listing->getPrice()->getCurrency();
+                }
+            }
         }
         return null;
     }
 
+    public function getFirstBarcode() {
+        if ($this->paaItem->getItemInfo() && ($x = $this->paaItem->getItemInfo()->getExternalIds())) {
+            if ($x->getEANs() && $x->getEANs()->getDisplayValues()) {
+                foreach ($x->getEANs()->getDisplayValues() as $barcode) {
+                    return self::canonicalBarcode($barcode);
+                }
+            }
+            if ($x->getUPCs() && $x->getUPCs()->getDisplayValues()) {
+                foreach ($x->getUPCs()->getDisplayValues() as $barcode) {
+                    return self::canonicalBarcode($barcode);
+                }
+            }
+        }
+        return null;
+    }
     public function getAllBarcodes() {
         $barcodes = [];
-        if ($this->getItemAttributes()->getEanList()) {
-            foreach ($this->getItemAttributes()->getEanList() as $barcode) {
-                $barcodes[] = self::canonicalBarcode($barcode);
+        if ($this->paaItem->getItemInfo() && ($x = $this->paaItem->getItemInfo()->getExternalIds())) {
+            if ($x->getEANs() && $x->getEANs()->getDisplayValues()) {
+                foreach ($x->getEANs()->getDisplayValues() as $barcode) {
+                    $barcodes[] = self::canonicalBarcode($barcode);
+                }
             }
-        }
-        if ($this->getItemAttributes()->getUpcList()) {
-            foreach ($this->getItemAttributes()->getUpcList() as $barcode) {
-                $barcodes[] = self::canonicalBarcode($barcode);
+            if ($x->getUPCs() && $x->getUPCs()->getDisplayValues()) {
+                foreach ($x->getUPCs()->getDisplayValues() as $barcode) {
+                    $barcodes[] = self::canonicalBarcode($barcode);
+                }
             }
-        }
-        if ($this->getItemAttributes()->getEan()) {
-            $barcodes[] = self::canonicalBarcode($this->getItemAttributes()->getEan());
-        }
-        if ($this->getItemAttributes()->getUpc()) {
-            $barcodes[] = self::canonicalBarcode($this->getItemAttributes()->getUpc());
         }
         $barcodes = array_unique($barcodes);
         return $barcodes;
@@ -163,42 +94,45 @@ class Item
      * @param $barcode
      * @return string
      */
-    public static function canonicalBarcode($barcode, $maxLength = 13) {
+    private static function canonicalBarcode($barcode, $maxLength = 13) {
         $barcode = ltrim(trim($barcode), '0');
         return str_pad($barcode, $maxLength, '0', STR_PAD_LEFT);
     }
 
     public function getWeightInPounds() {
-        // cascade to prevent crash if any of the intermediate objects are missing
-        if (!$x = $this->getItemAttributes()) {
+        if (!$this->dimensions || !$this->dimensions->hasWeight()) {
             return null;
         }
-        if (!$x = $x->getPackageDimensions()) {
+        return $this->dimensions->getWeightInPounds();
+    }
+    public function getWeightInGrams() {
+        if (!$this->dimensions || !$this->dimensions->hasWeight()) {
             return null;
         }
-        return $x->getWeightInPounds();
+        return $this->dimensions->getWeightInGrams();
     }
     public function getNormalisedDimensionsInDecimalInches() {
-        // cascade to prevent crash if any of the intermediate objects are missing
-        if (!$x = $this->getItemAttributes()) {
+        if (!$this->dimensions) {
             return null;
         }
-        if (!$x = $x->getPackageDimensions()) {
-            return null;
-        }
-        return $x->getNormalisedDimensionsInDecimalInches();
+        return $this->dimensions->getNormalisedDimensionsInDecimalInches();
     }
-
-    // ##################################################
-    // #  auto-generated basic getters live below here  #
-    // ##################################################
+    public function getNormalisedDimensionsInHundredthsInches() {
+        if (!$this->dimensions) {
+            return null;
+        }
+        return $this->dimensions->getNormalisedDimensionsInHundredthsInches();
+    }
+    public function hasAnyDimensions() {
+        return !empty($this->dimensions);
+    }
 
     /**
      * @return string
      */
     public function getAsin()
     {
-        return $this->asin;
+        return $this->paaItem->getASIN();
     }
 
     /**
@@ -206,7 +140,7 @@ class Item
      */
     public function getParentAsin()
     {
-        return $this->parentAsin;
+        return $this->paaItem->getParentASIN();
     }
 
     /**
@@ -214,15 +148,7 @@ class Item
      */
     public function getDetailPageUrl()
     {
-        return $this->detailPageUrl;
-    }
-
-    /**
-     * @return array
-     */
-    public function getItemLinks()
-    {
-        return $this->itemLinks;
+        return $this->paaItem->getDetailPageURL();
     }
 
     /**
@@ -230,87 +156,63 @@ class Item
      */
     public function getSalesRank()
     {
-        return $this->salesRank;
+        if (!$x = $this->paaItem->getBrowseNodeInfo()) {
+            return null;
+        }
+        if (!$x = $x->getWebsiteSalesRank()) {
+            return null;
+        }
+        return $x->getSalesRank();
+    }
+    /**
+     * @return string
+     */
+    public function getTopLevelCategoryDisplayName()
+    {
+        if (!$x = $this->paaItem->getBrowseNodeInfo()) {
+            return null;
+        }
+        if (!$x = $x->getWebsiteSalesRank()) {
+            return null;
+        }
+        return $x->getDisplayName();
     }
 
     /**
-     * @return Image
+     * @return ImageSize
      */
     public function getMainImage()
     {
-        return $this->mainImage;
+        if (!$x = $this->paaItem->getImages()) {
+            return null;
+        }
+        if (!$x = $x->getPrimary()) {
+            return null;
+        }
+        if (!$x = $x->getLarge()) {
+            return null;
+        }
+        return $this->paaItem->getImages()->getPrimary()->getLarge();
     }
 
     /**
-     * @return ItemAttributes
-     */
-    public function getItemAttributes()
-    {
-        return $this->itemAttributes;
-    }
-
-    /**
-     * @return array
+     * @return ImageSize[]
      */
     public function getSecondaryImages()
     {
-        return $this->secondaryImages;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getOfferSummary()
-    {
-        return $this->offerSummary;
-    }
-
-    /**
-     * @return OfferCollection
-     */
-    public function getOffers()
-    {
-        return $this->offers;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isHasCustomerReviews()
-    {
-        return $this->hasCustomerReviews;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEditorialSource()
-    {
-        return $this->editorialSource;
-    }
-
-    /**
-     * @return string
-     */
-    public function getEditorialContent()
-    {
-        return $this->editorialContent;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isEditorialIsLinkSuppressed()
-    {
-        return $this->editorialIsLinkSuppressed;
-    }
-
-    /**
-     * @return SimilarProduct[]
-     */
-    public function getSimilarProducts()
-    {
-        return $this->similarProducts;
+        if (!$x = $this->paaItem->getImages()) {
+            return null;
+        }
+        if (!$x = $x->getVariants()) {
+            return null;
+        }
+        $imageUrls = [];
+        foreach ($this->paaItem->getImages()->getVariants() as $image) {
+            if ($image->getLarge()) {
+                $imageUrls[] = $image->getLarge();
+            }
+        }
+        return $imageUrls;
     }
 
     /**
@@ -318,6 +220,142 @@ class Item
      */
     public function getBrowseNodes()
     {
-        return $this->browseNodes;
+        if (!$x = $this->paaItem->getBrowseNodeInfo()) {
+            return null;
+        }
+        if (!$x = $x->getBrowseNodes()) {
+            return null;
+        }
+        return $this->paaItem->getBrowseNodeInfo()->getBrowseNodes();
+    }
+
+    /**
+     * @return string
+     */
+    public function getBrand()
+    {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getByLineInfo()) {
+            return null;
+        }
+        if (!$x = $x->getBrand()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getByLineInfo()->getBrand()->getDisplayValue();
+    }
+    /**
+     * @return string
+     */
+    public function getManufacturer() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getByLineInfo()) {
+            return null;
+        }
+        if (!$x = $x->getManufacturer()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getByLineInfo()->getManufacturer()->getDisplayValue();
+    }
+    /**
+     * @return string
+     */
+    public function getModelName() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getManufactureInfo()) {
+            return null;
+        }
+        if (!$x = $x->getModel()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getManufactureInfo()->getModel()->getDisplayValue();
+    }
+    /**
+     * @return string
+     */
+    public function getItemPartNumber() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getManufactureInfo()) {
+            return null;
+        }
+        if (!$x = $x->getItemPartNumber()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getManufactureInfo()->getItemPartNumber()->getDisplayValue();
+    }
+    public function getTitle() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getTitle()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getTitle()->getDisplayValue();
+    }
+
+    /**
+     * @return string[]|null
+     */
+    public function getItemFeatures() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getFeatures()) {
+            return null;
+        }
+        return $this->paaItem->getItemInfo()->getFeatures()->getDisplayValues();
+    }
+
+    public function getOfferMerchantName() {
+        if (!$x = $this->paaItem->getOffers()) {
+            return null;
+        }
+        if (!$x = $x->getListings()) {
+            return null;
+        }
+        if (!$x = $x[0]->getMerchantInfo()) {
+            return null;
+        }
+        return $this->paaItem->getOffers()->getListings()[0]->getMerchantInfo()->getName();
+    }
+
+    /**
+     * Returns an array of languages for this Item
+     *
+     * @return array|null
+     */
+    public function getLanguages() {
+        if (!$x = $this->paaItem->getItemInfo()) {
+            return null;
+        }
+        if (!$x = $x->getContentInfo()) {
+            return null;
+        }
+        if (!$x = $x->getLanguages()) {
+            return null;
+        }
+        if (!$x = $x->getDisplayValues()) {
+            return null;
+        }
+        $languages = [];
+        foreach ($this->paaItem->getItemInfo()->getContentInfo()->getLanguages()->getDisplayValues() as $language) {
+            $languages[] = $language->getDisplayValue();
+        }
+        sort($languages);
+        return $languages;
+    }
+    public function getLanguagesAsSortedString() {
+        $languagesArray = $this->getLanguages();
+        if (empty($languagesArray)) {
+            return null;
+        }
+        return implode(',', $languagesArray);
     }
 }

@@ -6,6 +6,7 @@ use CaponicaAmazonPaa\Client\ApaaClientConfiguration;
 
 /**
  * A generic set of parameters for a PAA request
+ * @deprecated - not used for PAA v5
  */
 class GenericParameterSet
 {
