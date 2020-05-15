@@ -2,10 +2,10 @@
 
 namespace CaponicaAmazonPaa\Client;
 
-use \Amazon\ProductAdvertisingAPI\v1\ApiException;
-use \Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsRequest;
-use \Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResource;
-use \Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\PartnerType;
+use Amazon\ProductAdvertisingAPI\v1\ApiException;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsRequest;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResource;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\PartnerType;
 use CaponicaAmazonPaa\ParameterSet\GenericParameterSet;
 use CaponicaAmazonPaa\ParameterSet\ItemLookupParameterSet;
 use CaponicaAmazonPaa\Response\ItemLookupResponse;

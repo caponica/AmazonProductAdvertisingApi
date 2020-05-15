@@ -2,8 +2,8 @@
 
 namespace CaponicaAmazonPaa\Client;
 
-use \Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\api\DefaultApi;
-use \Amazon\ProductAdvertisingAPI\v1\Configuration;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\api\DefaultApi;
+use Amazon\ProductAdvertisingAPI\v1\Configuration;
 
 /**
  * Client to connect to the Amazon Product Advertising API
