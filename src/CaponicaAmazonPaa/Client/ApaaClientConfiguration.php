@@ -162,10 +162,6 @@ class ApaaClientConfiguration
         return 'www.amazon.' . $this->getDomainSuffix();
     }
 
-//    public function getEndpoint() {
-//        return $this->getProtocol() . $this->getHost();
-//    }
-
     public static function lookupDomainSuffix($countryCode) {
         $lookup = self::getDomainSuffixes();
         return !empty($lookup[$countryCode]) ? $lookup[$countryCode] : null;
@@ -197,9 +193,6 @@ class ApaaClientConfiguration
         return $apiInstance;
     }
 
-//    private function getProtocol() {
-//        return 'http://';
-//    }
     public function getHost() {
         return 'webservices.amazon.' . $this->domainSuffix;
     }

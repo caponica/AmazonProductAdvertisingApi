@@ -42,9 +42,6 @@ class GetItemsParameterSet
     // Resource option details are detailed here: https://webservices.amazon.com/paapi5/documentation/get-items.html#resources-parameter
     // Locale options (inc Currency, Language & Search Index) are detailed at https://webservices.amazon.com/paapi5/documentation/locale-reference.html
 
-    const PARAM_VALUE_FALSE                 = 'False';
-    const PARAM_VALUE_TRUE                  = 'True';
-
     public static function generateParameterSetNewOnly($numOffers=10) {
         $ps = new GetItemsParameterSet();
         $ps->setParameters([
