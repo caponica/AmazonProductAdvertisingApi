@@ -6,7 +6,12 @@ use Amazon\ProductAdvertisingAPI\v1\ApiException;
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsRequest;
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResource;
 use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\GetItemsResponse;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\ProductAdvertisingAPIClientException;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\SearchItemsRequest;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\SearchItemsResource;
+use Amazon\ProductAdvertisingAPI\v1\com\amazon\paapi5\v1\SearchItemsResponse;
 use CaponicaAmazonPaa\ParameterSet\GetItemsParameterSet;
+use CaponicaAmazonPaa\ParameterSet\SearchItemsParameterSet;
 use CaponicaAmazonPaa\Response\Item;
 
 /**
@@ -38,6 +43,9 @@ class ApaaClient
         return $this->configuration->getCountryCode();
     }
 
+    /**
+     * @param GetItemsRequest|SearchItemsRequest $requestObject
+     */
     protected function validateRequestObject($requestObject) {
         $invalidPropertyList = $requestObject->listInvalidProperties();
         $length = count($invalidPropertyList);
@@ -54,19 +62,19 @@ class ApaaClient
     /**
      * @param GetItemsRequest $getItemsRequest
      * @return GetItemsResponse
-     * @throws \ApiException
+     * @throws \Exception
      */
     protected function validateAndCallGetItems(GetItemsRequest $getItemsRequest) {
         // Validate
         $this->validateRequestObject($getItemsRequest);
-print_r($getItemsRequest);
+//print_r($getItemsRequest);
         # Sending the request
         try {
             $getItemsResponse = $this->apiInstance->getItems($getItemsRequest);
-echo 'PAA called successfully', PHP_EOL;
-echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
+//echo 'PAA called successfully', PHP_EOL;
+//echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
         } catch (ApiException $exception) {
-            $errorMessage = "\n*** ApiException ERROR calling PA-API 5.0 ***";
+            $errorMessage = "\n*** ApiException ERROR calling PA-API 5.0 getItems ***";
             $errorMessage .= "\nHTTP Status Code: {$exception->getCode()}";
             $errorMessage .= "\nError Message: {$exception->getMessage()}";
 
@@ -84,7 +92,7 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
 
         # Parsing the response
         if ($getItemsResponse->getErrors() !== null) {
-            $errorMessage = "\nErrors returned from PAA5 API:\n";
+            $errorMessage = "\nErrors returned from PAA5 API getItems:\n";
             foreach ($getItemsResponse->getErrors() as $errorObject) {
                 $errorMessage .= "\nError #{$errorObject->getCode()}: {$errorObject->getMessage()}";
             }
@@ -98,6 +106,7 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
      * @param string|array $itemIds
      * @param array $resources
      * @param array $extraParams
+     * @param bool $returnItemsInsteadOfResponse
      * @return Item[]|GetItemsResponse
      * @throws \Exception
      */
@@ -132,6 +141,115 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
         return $getItemsResponse;
     }
 
+    protected function hasNoSearchTerms(SearchItemsRequest $searchItemsRequest) {
+        if ($searchItemsRequest->getTitle()) {
+            return false;
+        }
+        if ($searchItemsRequest->getKeywords()) {
+            return false;
+        }
+        if ($searchItemsRequest->getActor()) {
+            return false;
+        }
+        if ($searchItemsRequest->getArtist()) {
+            return false;
+        }
+        if ($searchItemsRequest->getAuthor()) {
+            return false;
+        }
+        if ($searchItemsRequest->getBrand()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param SearchItemsRequest $searchItemsRequest
+     * @return SearchItemsResponse
+     * @throws \Exception
+     */
+    protected function validateAndCallSearchItems(SearchItemsRequest $searchItemsRequest) {
+        if ($this->hasNoSearchTerms($searchItemsRequest)) {
+            throw new \Exception('Must provide at least one search term in: Title, Keywords, Actor, Artist, Author or Brand');
+        }
+        // Validate
+        $this->validateRequestObject($searchItemsRequest);
+//print_r($searchItemsRequest);
+        # Sending the request
+        try {
+            $searchItemsResponse = $this->apiInstance->searchItems($searchItemsRequest);
+//echo 'PAA called successfully', PHP_EOL;
+//echo 'Complete Response: ', $searchItemsResponse, PHP_EOL;
+        } catch (ApiException $exception) {
+            $errorMessage = "\n*** ApiException ERROR calling PA-API 5.0 searchItems ***";
+            $errorMessage .= "\nHTTP Status Code: {$exception->getCode()}";
+            $errorMessage .= "\nError Message: {$exception->getMessage()}";
+
+            if ($exception->getResponseObject() instanceof ProductAdvertisingAPIClientException) {
+                $errors = $exception->getResponseObject()->getErrors();
+                foreach ($errors as $error) {
+                    $errorMessage .= "\n\nError Type: {$error->getCode()}";
+                    $errorMessage .= "\nError Message: {$error->getMessage()}";
+                }
+            } else {
+                $errorMessage .= "\n\nError response body: {$exception->getResponseBody()}";
+            }
+            throw new \Exception($errorMessage);
+        }
+
+        # Parsing the response
+        if ($searchItemsResponse->getErrors() !== null) {
+            $errorMessage = "\nErrors returned from PAA5 API searchItems:\n";
+            foreach ($searchItemsResponse->getErrors() as $errorObject) {
+                $errorMessage .= "\nError #{$errorObject->getCode()}: {$errorObject->getMessage()}";
+            }
+            throw new \Exception($errorMessage);
+        }
+
+        return $searchItemsResponse;
+    }
+
+    /**
+     * @param string $titleKeywords
+     * @param string $textKeywords
+     * @param array $resources
+     * @param array $extraParams
+     * @param bool $returnItemsInsteadOfResponse
+     * @return Item[]|SearchItemsResponse
+     * @throws \Exception
+     */
+    protected function searchItems($titleKeywords=null, $textKeywords=null, $resources=null, $extraParams=[], $returnItemsInsteadOfResponse=false) {
+        if (empty($titleKeywords) && empty($textKeywords)) {
+            throw new \Exception("Must provide at least one title or keyword search term");
+        }
+
+        $ps = SearchItemsParameterSet::generateParameterSetNewOnly();
+        $ps->mergeParameters($extraParams);
+
+        $searchItemsRequest = new SearchItemsRequest($ps->getParameters());
+        $searchItemsRequest->setTitle($titleKeywords);
+        $searchItemsRequest->setKeywords($textKeywords);
+        $searchItemsRequest->setResources($resources);
+        $searchItemsRequest->setPartnerTag($this->configuration->getPartnerTag());
+        $searchItemsRequest->setMarketplace($this->configuration->getMarketplace());
+
+        $searchItemsResponse = $this->validateAndCallSearchItems($searchItemsRequest);
+
+        if ($returnItemsInsteadOfResponse) {
+            $mappedResponse = [];
+            if ($searchItemsResponse->getSearchResult() !== null) {
+                if ($searchItemsResponse->getSearchResult()->getItems() !== null) {
+                    foreach ($searchItemsResponse->getSearchResult()->getItems() as $item) {
+                        $mappedResponse[$item->getASIN()] = new Item($item);
+                    }
+                }
+            }
+            return $mappedResponse;
+        }
+
+        return $searchItemsResponse;
+    }
+
     /**
      * @param string|array $itemIds
      * @param array $resources
@@ -160,9 +278,8 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
      * @param array $extraParams
      * @return Item[]
      * @throws \Exception
-     * @throws ApiException
      */
-    public function callItemLookupFull($itemIds, $extraParams=[]) {
+    public function callGetItemsFull($itemIds, $extraParams=[]) {
         $resources = [
             GetItemsResource::BROWSE_NODE_INFOBROWSE_NODES,
             GetItemsResource::BROWSE_NODE_INFOBROWSE_NODESANCESTOR,
@@ -214,7 +331,13 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
         return $this->getItemsAndReturnAsinMappedItems($itemIds, $resources, $extraParams);
     }
 
-    public function callItemLookupAttributes($itemIds, $extraParams=[]) {
+    /**
+     * @param array $itemIds
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function callGetItemsAttributes($itemIds, $extraParams=[]) {
         $resources = [
             GetItemsResource::BROWSE_NODE_INFOWEBSITE_SALES_RANK,
             GetItemsResource::ITEM_INFOCONTENT_INFO,
@@ -225,6 +348,31 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
         ];
 
         return $this->getItemsAndReturnAsinMappedItems($itemIds, $resources, $extraParams);
+    }
+
+    /**
+     * Alias for callGetItemsFull()
+     *
+     * @deprecated - use callGetItemsFull() instead
+     * @param $itemIds
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function callItemLookupFull($itemIds, $extraParams=[]) {
+        return $this->callGetItemsFull($itemIds, $extraParams);
+    }
+    /**
+     * Alias for callGetItemsFull()
+     *
+     * @deprecated - use callGetItemsAttributes() instead
+     * @param $itemIds
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function callItemLookupAttributes($itemIds, $extraParams=[]) {
+        return $this->callGetItemsAttributes($itemIds, $extraParams);
     }
 
     public function errorMessageIsAboutInvalidAsins($errorMsg) {
@@ -238,5 +386,88 @@ echo 'Complete Response: ', $getItemsResponse, PHP_EOL;
             return $invalidAsins;
         }
         return false;
+    }
+
+    /**
+     * Looks up the given search keywords in the title and/or all text and return the full set of Resources
+     *
+     * @param string $titleKeywords
+     * @param string $textKeywords
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function callSearchItemsFull($titleKeywords=null, $textKeywords=null, $extraParams=[]) {
+        $resources = [
+            SearchItemsResource::BROWSE_NODE_INFOBROWSE_NODES,
+            SearchItemsResource::BROWSE_NODE_INFOBROWSE_NODESANCESTOR,
+            SearchItemsResource::BROWSE_NODE_INFOBROWSE_NODESSALES_RANK,
+            SearchItemsResource::BROWSE_NODE_INFOWEBSITE_SALES_RANK,
+            SearchItemsResource::CUSTOMER_REVIEWSCOUNT,
+            SearchItemsResource::CUSTOMER_REVIEWSSTAR_RATING,
+//            SearchItemsResource::IMAGESPRIMARYSMALL,
+//            SearchItemsResource::IMAGESPRIMARYMEDIUM,
+            SearchItemsResource::IMAGESPRIMARYLARGE,
+//            SearchItemsResource::IMAGESVARIANTSSMALL,
+//            SearchItemsResource::IMAGESVARIANTSMEDIUM,
+            SearchItemsResource::IMAGESVARIANTSLARGE,
+            SearchItemsResource::ITEM_INFOBY_LINE_INFO,
+            SearchItemsResource::ITEM_INFOCONTENT_INFO,
+            SearchItemsResource::ITEM_INFOCONTENT_RATING,
+            SearchItemsResource::ITEM_INFOCLASSIFICATIONS,
+            SearchItemsResource::ITEM_INFOEXTERNAL_IDS,
+            SearchItemsResource::ITEM_INFOFEATURES,
+            SearchItemsResource::ITEM_INFOMANUFACTURE_INFO,
+            SearchItemsResource::ITEM_INFOPRODUCT_INFO,
+            SearchItemsResource::ITEM_INFOTECHNICAL_INFO,
+            SearchItemsResource::ITEM_INFOTITLE,
+            SearchItemsResource::ITEM_INFOTRADE_IN_INFO,
+            SearchItemsResource::OFFERSLISTINGSAVAILABILITYMAX_ORDER_QUANTITY,
+            SearchItemsResource::OFFERSLISTINGSAVAILABILITYMESSAGE,
+            SearchItemsResource::OFFERSLISTINGSAVAILABILITYMIN_ORDER_QUANTITY,
+            SearchItemsResource::OFFERSLISTINGSAVAILABILITYTYPE,
+            SearchItemsResource::OFFERSLISTINGSCONDITION,
+            SearchItemsResource::OFFERSLISTINGSCONDITIONSUB_CONDITION,
+            SearchItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_AMAZON_FULFILLED,
+            SearchItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_FREE_SHIPPING_ELIGIBLE,
+            SearchItemsResource::OFFERSLISTINGSDELIVERY_INFOIS_PRIME_ELIGIBLE,
+            SearchItemsResource::OFFERSLISTINGSDELIVERY_INFOSHIPPING_CHARGES,
+            SearchItemsResource::OFFERSLISTINGSIS_BUY_BOX_WINNER,
+            SearchItemsResource::OFFERSLISTINGSLOYALTY_POINTSPOINTS,
+            SearchItemsResource::OFFERSLISTINGSMERCHANT_INFO,
+            SearchItemsResource::OFFERSLISTINGSPRICE,
+            SearchItemsResource::OFFERSLISTINGSPROGRAM_ELIGIBILITYIS_PRIME_EXCLUSIVE,
+            SearchItemsResource::OFFERSLISTINGSPROGRAM_ELIGIBILITYIS_PRIME_PANTRY,
+            SearchItemsResource::OFFERSLISTINGSPROMOTIONS,
+            SearchItemsResource::OFFERSLISTINGSSAVING_BASIS,
+            SearchItemsResource::OFFERSSUMMARIESHIGHEST_PRICE,
+            SearchItemsResource::OFFERSSUMMARIESLOWEST_PRICE,
+            SearchItemsResource::OFFERSSUMMARIESOFFER_COUNT,
+            SearchItemsResource::PARENT_ASIN,
+            SearchItemsResource::SEARCH_REFINEMENTS,    // This is the only one not in GetItemsResource (K517)
+        ];
+
+        return $this->searchItemsAndReturnAsinMappedItems($titleKeywords, $textKeywords, $resources, $extraParams);
+    }
+
+    /**
+     * @param string|array $itemIds
+     * @param array $resources
+     * @param array $extraParams
+     * @return Item[]|GetItemsResponse
+     * @throws \Exception
+     */
+    public function searchItemsAndReturnResponse($titleKeywords=null, $textKeywords=null, $resources=null, $extraParams=[]) {
+        return $this->searchItems($titleKeywords, $textKeywords, $resources, $extraParams, false);
+    }
+    /**
+     * @param string|array $itemIds
+     * @param array $resources
+     * @param array $extraParams
+     * @return Item[]
+     * @throws \Exception
+     */
+    public function searchItemsAndReturnAsinMappedItems($titleKeywords=null, $textKeywords=null, $resources=null, $extraParams=[]) {
+        return $this->searchItems($titleKeywords, $textKeywords, $resources, $extraParams, true);
     }
 }
