@@ -13,7 +13,7 @@ class Dimensions
 
     const UNITS_WEIGHT_KILOGRAMS            = 'kilograms';
     const UNITS_WEIGHT_POUND                = 'pounds';
-    const UNITS_WEIGHT_POUND_DE             = 'zoll';
+    const UNITS_WEIGHT_POUND_DE             = 'pfund';
     const UNITS_WEIGHT_POUND_ES             = 'libras'; // not checked
     const UNITS_WEIGHT_POUND_FR             = 'livres';
     const UNITS_WEIGHT_POUND_IT             = 'sterline'; // not checked
