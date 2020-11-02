@@ -11,6 +11,7 @@ class Dimensions
 {
     const CONVERSION_FACTOR_KG_TO_LB    = 2.20462;
 
+    const UNITS_WEIGHT_GRAMS                = 'grams';
     const UNITS_WEIGHT_KILOGRAMS            = 'kilograms';
     const UNITS_WEIGHT_POUND                = 'pounds';
     const UNITS_WEIGHT_POUND_DE             = 'pfund';
@@ -90,6 +91,8 @@ class Dimensions
             return $this->weight / self::CONVERSION_FACTOR_KG_TO_LB;
         } elseif ($this->isUnitsKilograms($this->units['weight'])) {
             return $this->weight;
+        } elseif ($this->isUnitsGrams($this->units['weight'])) {
+            return $this->weight / 1000;
         }
         throw new \Exception("Unknown units for weight : " . $this->units['weight']);
     }
@@ -104,6 +107,8 @@ class Dimensions
             return $this->weight;
         } elseif ($this->isUnitsKilograms($this->units['weight'])) {
             return $this->weight * self::CONVERSION_FACTOR_KG_TO_LB;
+        } elseif ($this->isUnitsGrams($this->units['weight'])) {
+            return $this->getWeightInKg() * self::CONVERSION_FACTOR_KG_TO_LB;
         }
         throw new \Exception("Unknown units for weight : " . $this->units['weight']);
     }
@@ -170,6 +175,13 @@ class Dimensions
     private function isUnitsKilograms($unitString) {
         $unitString = strtolower($unitString);
         if ($unitString == self::UNITS_WEIGHT_KILOGRAMS) {
+            return true;
+        }
+        return false;
+    }
+    private function isUnitsGrams($unitString) {
+        $unitString = strtolower($unitString);
+        if ($unitString == self::UNITS_WEIGHT_GRAMS) {
             return true;
         }
         return false;
