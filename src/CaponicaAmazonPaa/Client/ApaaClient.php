@@ -77,6 +77,7 @@ class ApaaClient
             $errorMessage = "\n*** ApiException ERROR calling PA-API 5.0 getItems ***";
             $errorMessage .= "\nHTTP Status Code: {$exception->getCode()}";
             $errorMessage .= "\nError Message: {$exception->getMessage()}";
+            $errorMessage .= "\nRequest:\n" . print_r($getItemsRequest, true) . "\n";
 
             if ($exception->getResponseObject() instanceof ProductAdvertisingAPIClientException) {
                 $errors = $exception->getResponseObject()->getErrors();
@@ -124,7 +125,15 @@ class ApaaClient
         $getItemsRequest->setPartnerTag($this->configuration->getPartnerTag());
         $getItemsRequest->setMarketplace($this->configuration->getMarketplace());
 
-        $getItemsResponse = $this->validateAndCallGetItems($getItemsRequest);
+        try {
+            $getItemsResponse = $this->validateAndCallGetItems($getItemsRequest);
+        } catch (\Exception $e) {
+            echo "\n# APAA EXCEPTION, first pass#\n";
+            echo $e->getMessage();
+            echo "\nWaiting 1 minute before re-trying\n";
+            sleep(60);
+            $getItemsResponse = $this->validateAndCallGetItems($getItemsRequest);
+        }
 
         if ($returnItemsInsteadOfResponse) {
             $mappedResponse = [];
